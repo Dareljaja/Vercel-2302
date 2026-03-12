@@ -3,17 +3,15 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'No build step needed'",
-    "start": "vercel dev"
+    "build": "echo 'No build step needed'"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "multer": "^1.4.5-lts.1",
-    "mercadopago": "^2.0.9",
-    "jsonwebtoken": "^9.0.2",
+    "@vercel/blob": "latest",
     "cors": "^2.8.5",
-    "@vercel/blob": "latest"
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.3",
+    "mercadopago": "^2.0.9",
+    "multer": "^1.4.5-lts.1"
   },
   "engines": {
     "node": ">=18.0.0"
