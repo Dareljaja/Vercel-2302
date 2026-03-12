@@ -1,3 +1,510 @@
-<!-- Full admin panel HTML + JS calling /api/admin-api -->
-<!-- Adapted from admin-panel.php with fetch('/api/admin-api') instead of PHP -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2302 | Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-panel: #111;
+            --accent-gold: #d4af37;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --border-light: rgba(212, 175, 55, 0.2);
+            --danger: #e74c3c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 30px;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 600; color: var(--accent-gold); }
+        .logout-btn {
+            padding: 10px 20px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-gold);
+            border-bottom-color: var(--accent-gold);
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active { display: block; }
+
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-panel);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .products-table th,
+        .products-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .products-table th {
+            background: var(--bg-panel);
+            font-weight: 600;
+            color: var(--accent-gold);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .products-table img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            margin: 0 4px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-edit { background: var(--accent-gold); color: #000; }
+        .btn-delete { background: var(--danger); color: white; }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--accent-gold);
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-panel);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--bg-panel);
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 14px;
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .btn-secondary {
+            padding: 14px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .loading { opacity: 0.6; pointer-events: none; }
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .message.success { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+        .message.error { background: rgba(231, 76, 60, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 15px; }
+            .products-table { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-crown"></i>
+                2302 ADMIN
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Salir
+            </button>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showPanel('products')">Productos</button>
+            <button class="tab-btn" onclick="showPanel('categories')">Categorías</button>
+            <button class="tab-btn" onclick="showPanel('sales')">Ventas</button>
+        </div>
+
+        <!-- Products Panel -->
+        <div id="products" class="panel active">
+            <div style="margin-bottom: 30px;">
+                <button class="btn-primary" onclick="showForm()">
+                    <i class="fas fa-plus"></i> Nuevo Producto
+                </button>
+            </div>
+
+            <div id="message"></div>
+
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Categoría</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTable">
+                    <!-- Dynamic -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Product Form -->
+        <div id="productForm" class="panel" style="display: none;">
+            <h2 id="formTitle">Nuevo Producto</h2>
+            <form id="productFormEl">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" id="name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Precio</label>
+                        <input type="number" id="price" class="form-input" step="0.01" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Categoría</label>
+                    <select id="category" class="form-select" required>
+                        <option value="face">Rostro</option>
+                        <option value="body">Cuerpo</option>
+                        <option value="hair">Cabello</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tamaño</label>
+                        <input type="text" id="size" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Imagen URL</label>
+                        <input type="url" id="image" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Descripción corta</label>
+                    <textarea id="shortDescription" class="form-textarea" rows="2"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Descripción completa</label>
+                    <textarea id="description" class="form-textarea" rows="3"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="popular"> Popular
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="offer"> Oferta
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Guardar Producto
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="hideForm()">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let editingId = null;
+        let products = [];
+
+        // Check auth on load
+        if (!localStorage.getItem('adminToken')) {
+            window.location.href = '/admin.html';
+        }
+
+        // Load products
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/admin/products', {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
+                });
+                const data = await res.json();
+                
+                if (!res.ok) throw new Error(data.message);
+                
+                products = data.products;
+                renderTable();
+            } catch (err) {
+                showMessage('Error loading products: ' + err.message, 'error');
+                if (err.message.includes('Unauthorized')) logout();
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('productsTable');
+            tbody.innerHTML = products.map(p => `
+                <tr>
+                    <td><img src="${p.image}" alt="${p.name}"></td>
+                    <td><strong>${p.name}</strong></td>
+                    <td>$${p.price}</td>
+                    <td>${getCategoryLabel(p.category)}</td>
+                    <td>
+                        ${p.popular ? '<span style="color:var(--accent-gold);">⭐ Popular</span>' : ''}
+                        ${p.offer ? '<span style="color:var(--danger);">💸 Oferta</span>' : ''}
+                    </td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="editProduct(${p.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deleteProduct(${p.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showForm(id = null) {
+            editingId = id;
+            document.getElementById('products').style.display = 'none';
+            document.getElementById('productForm').style.display = 'block';
+            
+            if (id) {
+                const product = products.find(p => p.id === id);
+                if (product) {
+                    document.getElementById('formTitle').textContent = 'Editar Producto';
+                    document.getElementById('name').value = product.name;
+                    document.getElementById('price').value = product.price;
+                    document.getElementById('category').value = product.category;
+                    document.getElementById('size').value = product.size || '';
+                    document.getElementById('image').value = product.image;
+                    document.getElementById('shortDescription').value = product.shortDescription || '';
+                    document.getElementById('description').value = product.description || '';
+                    document.getElementById('popular').checked = product.popular;
+                    document.getElementById('offer').checked = product.offer;
+                }
+            } else {
+                document.getElementById('formTitle').textContent = 'Nuevo Producto';
+                document.querySelector('#productFormEl').reset();
+            }
+        }
+
+        function hideForm() {
+            document.getElementById('products').style.display = 'block';
+            document.getElementById('productForm').style.display = 'none';
+            editingId = null;
+        }
+
+        document.getElementById('productFormEl').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const productData = Object.fromEntries(formData);
+            
+            try {
+                const res = await fetch('/api/admin/products', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok && data.success) {
+                    showMessage('Producto guardado correctamente', 'success');
+                    loadProducts();
+                    hideForm();
+                } else {
+                    showMessage(data.message || 'Error al guardar', 'error');
+                }
+            } catch (err) {
+                showMessage('Error de conexión', 'error');
+            }
+        });
+
+        async function deleteProduct(id) {
+            if (!confirm('¿Eliminar este producto?')) return;
+            
+            try {
+                // Note: Full DELETE needs separate endpoint, using POST for now
+                const res = await fetch('/api/admin/products', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+                
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showMessage('Producto eliminado', 'success');
+                    loadProducts();
+                }
+            } catch (err) {
+                showMessage('Error al eliminar', 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const msgEl = document.getElementById('message');
+            msgEl.textContent = text;
+            msgEl.className = `message ${type}`;
+            setTimeout(() => msgEl.className = 'message', 5000);
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = '/admin.html';
+        }
+
+        function getCategoryLabel(cat) {
+            const labels = { face: 'Rostro', body: 'Cuerpo', hair: 'Cabello' };
+            return labels[cat] || cat;
+        }
+
+        function showPanel(panelId) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(panelId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Init
+        loadProducts();
+    </script>
+</body>
+</html>
 

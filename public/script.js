@@ -48,14 +48,16 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function loadProducts() {
     try {
-        const response = await fetch('products.json');
+        const response = await fetch('/api/products');
         if (!response.ok) throw new Error('Error loading products');
         
-        products = await response.json();
+        const data = await response.json();
+        products = Array.isArray(data) ? data : data.products || [];
         renderProducts(products);
         renderCollection();
         
     } catch (error) {
+        console.error('Products API failed:', error);
         loadFallbackProducts();
     }
 }
@@ -280,7 +282,7 @@ function renderProducts(productsToRender) {
     }
     
     productsGrid.innerHTML = productsToRender.map((product) => `
-        <article class="product-card" onclick="window.location.href='product.php?id=${product.id}'">
+        <article class="product-card" onclick="openProductModal(${product.id})">
             <div class="product-image">
                 <img src="${product.image}" alt="${product.name}" loading="lazy">
                 ${renderBadges(product)}
@@ -310,7 +312,7 @@ function renderCollection() {
     const collectionProducts = products.slice(0, 8);
     
     collectionGrid.innerHTML = collectionProducts.map((product) => `
-        <article class="collection-item" onclick="window.location.href='product.php?id=${product.id}'">
+        <article class="collection-item" onclick="openProductModal(${product.id})">
             <img src="${product.image}" alt="${product.name}" loading="lazy">
             <div class="collection-overlay">
                 <h3 class="collection-title">${product.name}</h3>
