@@ -6,6 +6,7 @@
     "build": "echo 'No build step needed'"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.99.1",
     "@vercel/blob": "latest",
     "cors": "^2.8.5",
     "express": "^4.19.2",

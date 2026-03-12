@@ -1,8 +1,18 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'shop2302_secret';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Missing Supabase env vars: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY');
+}
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: { autoRefreshToken: false, persistSession: false }
+});
+
+const JWT_SECRET = process.env.JWT_SECRET || 'shop2302_secret_dev';
 
 const verifyToken = (req) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
@@ -10,26 +20,9 @@ const verifyToken = (req) => {
   return jwt.verify(token, JWT_SECRET);
 };
 
-// Helper: ./api/products.json (shared with public)
-const PRODUCTS_FILE = resolve('./api/products.json');
+const sanitize = (str) => str?.toString().replace(/[&<>\\"'\\/]/g, '');
 
-const readProducts = () => {
-  if (!existsSync(PRODUCTS_FILE)) return [];
-  try {
-    return JSON.parse(readFileSync(PRODUCTS_FILE, 'utf8'));
-  } catch {
-    return [];
-  }
-};
-
-const writeProducts = (products) => {
-  writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf8');
-  return true;
-};
-
-const sanitize = (str) => str?.toString().replace(/[&<>\"'']/g, '');
-
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
@@ -39,24 +32,27 @@ export default function handler(req, res) {
     verifyToken(req);
 
     if (req.method === 'GET') {
-      // GET /api/admin/products - List products
-      const products = readProducts();
+      // List all products
+      const { data: products, error } = await supabaseAdmin
+        .from('productos')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
       res.status(200).json({ success: true, products });
 
     } else if (req.method === 'POST') {
-      // POST /api/admin/products - Create product
+      // Create product
       const input = req.body;
-      let products = readProducts();
-      const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
 
       const product = {
-        id: newId,
         name: sanitize(input.name),
         description: sanitize(input.description),
         shortDescription: sanitize(input.shortDescription),
         price: parseFloat(input.price) || 0,
-        category: sanitize(input.category),
-        image: sanitize(input.image),
+        category: sanitize(input.category) || 'face',
+        image_url: sanitize(input.image_url),
         popular: !!input.popular,
         offer: !!input.offer,
         size: sanitize(input.size),
@@ -64,22 +60,62 @@ export default function handler(req, res) {
         howToUse: sanitize(input.howToUse)
       };
 
-      // Only one popular
-      if (product.popular) products.forEach(p => p.popular = false);
-      products.push(product);
+      const { data, error } = await supabaseAdmin
+        .from('productos')
+        .insert([product])
+        .select()
+        .single();
 
-      if (writeProducts(products)) {
-        res.status(201).json({ success: true, product });
-      } else {
-        res.status(500).json({ success: false, message: 'Failed to save' });
-      }
+      if (error) throw error;
+
+      res.status(201).json({ success: true, product: data });
+
+    } else if (req.method === 'PUT') {
+      // Update product {id, ...}
+      const { id, ...updateData } = req.body;
+      
+      const cleanUpdate = {};
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] !== undefined && updateData[key] !== null) {
+          cleanUpdate[key] = key === 'price' ? parseFloat(updateData[key]) || 0 :
+                           ['popular', 'offer'].includes(key) ? !!updateData[key] :
+                           sanitize(updateData[key]);
+        }
+      });
+
+      const { data, error } = await supabaseAdmin
+        .from('productos')
+        .update(cleanUpdate)
+        .eq('id', Number(id))
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      res.status(200).json({ success: true, product: data });
+
+    } else if (req.method === 'DELETE') {
+      // Delete ?id=123
+      const { id } = req.query;
+
+      const { error } = await supabaseAdmin
+        .from('productos')
+        .delete()
+        .eq('id', Number(id));
+
+      if (error) throw error;
+
+      res.status(200).json({ success: true, message: 'Deleted' });
 
     } else {
       res.status(405).json({ success: false, message: 'Method not allowed' });
     }
   } catch (error) {
     console.error('Admin products error:', error);
-    res.status(401).json({ success: false, message: error.message || 'Unauthorized' });
+    res.status(error.statusCode === 401 || error.message.includes('token') ? 401 : 500).json({ 
+      success: false, 
+      message: error.message 
+    });
   }
 }
 

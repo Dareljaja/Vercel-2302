@@ -49,18 +49,24 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadProducts() {
     try {
         const response = await fetch('/api/products');
-        if (!response.ok) throw new Error('Error loading products');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const data = await response.json();
-        products = Array.isArray(data) ? data : data.products || [];
+        products = Array.isArray(data) ? data : [];
+        if (products.length === 0) {
+            console.warn('No products found');
+        }
         renderProducts(products);
         renderCollection();
         
     } catch (error) {
-        console.error('Products API failed:', error);
-        loadFallbackProducts();
+        console.error('Products load error:', error);
+        products = [];
+        renderProducts(products);
+        renderCollection();
     }
 }
+
 
 /**
  * Fallback products

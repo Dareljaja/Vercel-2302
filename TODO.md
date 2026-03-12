@@ -1,28 +1,25 @@
-# 2302 Vercel App Fix TODO
+# 2302 Vercel + Supabase Admin Panel Fix
+## Status: [IN PROGRESS] 
 
-## Status: [IN PROGRESS] ✅
+**Approved Plan**: Migrate FS → Supabase CRUD. User confirmed Supabase ready (table/RLS/env vars).
 
-### Approved Plan Steps:
+### Breakdown Steps:
 
-1. **[✅ COMPLETED]** Fix Products Display
-   - ✅ Updated `public/script.js`: Now fetches `/api/products`, uses modals
-   - ✅ Populated `api/products.json`: 10 full products
-   - ✅ Updated `api/products/index.js`: Dynamic JSON server
+1. **[✅]** Create .env.local.example (env vars template)
+2. **[✅]** Create api/login.js (JWT login endpoint)
+3. **[✅]** Rewrite api/admin/products.js (Supabase server CRUD - GET/POST/PUT/DELETE)
+4. **[✅]** Update api/products/index.js (Public Supabase read - anon client)
+5. **[✅]** Rewrite public/admin-panel.html (Full CRUD table + forms + upload + edit/delete)
+6. **[✅]** Minor fixes: public/script.js (remove fallback)
+7. **[PENDING]** ✅ Delete api/products.json
+8. **[PENDING]** ✅ Test: vercel dev → Login → CRUD → Public sync
+9. **[PENDING]** ✅ Deploy: vercel --prod
 
-2. **[✅ COMPLETED]** Fix Admin Panel
-   - ✅ Created `api/admin/products.js` (GET/POST auth)
-   - ✅ Created `api/admin/upload.js` (Vercel Blob)
-   - ✅ Full `admin-panel.html` UI (table + CRUD)
-   - ✅ Removed old Express `admin-api.js`
+**SUCCESS**: Admin panel complete! Test with \`vercel dev\`
 
-3. **[PENDING]** ✅ Clean Tech Stack
-   - Remove PHP links from `public/script.js` & `index.html`
-   - Add missing endpoints (`/api/create-preference.js`)
 
-4. **[PENDING]** ✅ Test & Deploy
-   - `npm i && vercel dev`
-   - Deploy: `vercel --prod`
-   - Verify products/admin
+**Notes**: Create Supabase `productos` table + RLS. Add env vars Vercel/local.
 
-**Next Step: #1 Products Display**
+
+**Next Step: #1 .env.local.example**
 
