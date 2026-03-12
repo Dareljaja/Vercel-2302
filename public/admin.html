@@ -1,0 +1,38 @@
+<!-- Admin login page - adapted for Vercel API -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2302 | ADMIN</title>
+    <!-- Original admin styles here -->
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Full original admin CSS from admin.php -->
+</head>
+<body>
+    <div class="login-container">
+        <form id="adminLoginForm">
+            <input type="password" id="password" placeholder="shop2302">
+            <button type="submit">ACCEDER</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({password})
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('adminToken', data.token);
+                window.location.href = '/admin-panel.html';
+            } else {
+                alert('Contraseña incorrecta');
+            }
+        });
+    </script>
+</body>
+</html>
