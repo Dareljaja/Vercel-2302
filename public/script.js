@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadProducts() {
     try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/products/index.js');
         const data = await response.json();
         products = Array.isArray(data) ? data : [];
         renderProducts(products);
