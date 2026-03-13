@@ -193,4 +193,15 @@ function loadCartFromStorage() {
     if (saved) cart = JSON.parse(saved);
 }
 
-function openCartSidebar() { cartSidebar?.classList.add('active'); cartOverlay
+function openCartSidebar() { cartSidebar?.classList.add('active'); cartOverlay?.classList.add('active'); }
+function closeCartSidebar() { cartSidebar?.classList.remove('active'); cartOverlay?.classList.remove('active'); }
+
+function initEventListeners() {
+    document.getElementById('cartBtn')?.addEventListener('click', openCartSidebar);
+    document.getElementById('cartClose')?.addEventListener('click', closeCartSidebar);
+    cartOverlay?.addEventListener('click', closeCartSidebar);
+    mobileMenuBtn?.addEventListener('click', () => mobileNav.classList.toggle('active'));
+}
+
+window.addToCart = addToCart;
+window.updateQuantity = updateQuantity;
