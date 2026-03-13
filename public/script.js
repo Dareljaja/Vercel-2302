@@ -28,9 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadProducts() {
     try {
-        const response = await fetch('/api/products/index.js');
+const response = await fetch('/api/products');
         const data = await response.json();
-        products = Array.isArray(data) ? data : [];
+    products = Array.isArray(data) ? data : [];    window.products = products;
         renderProducts(products);
         renderCollection();
     } catch (error) {
@@ -75,7 +75,7 @@ function renderCollection() {
 }
 
 // Lógica de Carrito básica para que no de error
-function addToCart(productId) {
+window.addToCart = function(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
     const existing = cart.find(item => item.id === productId);

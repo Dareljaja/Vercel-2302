@@ -288,50 +288,8 @@
         </div>
     </aside>
 
-    <script src="/script.js"></script>
-    <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+    <script defer src="/script.js"></script>
 
-    // Configuración de Supabase
-    const supabaseUrl = 'https://rzrwjxkskukelcvrhcdk.supabase.co'
-    const supabaseKey = 'sb_publishable_O4cNItQ0h3GxYsTaIGNQSg_uBsj4HJT' 
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
-    async function cargarProductos() {
-        const grid = document.getElementById('productsGrid');
-        const collectionGrid = document.getElementById('collectionGrid');
-        
-        // 1. Traer datos de la tabla "productos"
-        const { data: productos, error } = await supabase
-            .from('productos')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            console.error('Error al cargar productos:', error);
-            return;
-        }
-
-        // 2. Limpiar los contenedores
-        if(grid) grid.innerHTML = ''; 
-        if(collectionGrid) collectionGrid.innerHTML = '';
-
-        productos.forEach(prod => {
-            // Estructura de la tarjeta de producto
-            const productHTML = `
-                <article class="product-card">
-                    <div class="product-image">
-                        <img src="${prod.imagen_url || 'https://via.placeholder.com/400x500/111/d4af37?text=2302+Product'}" alt="${prod.nombre}">
-                        <div class="product-actions">
-                            <button class="add-to-cart" data-id="${prod.id}" data-nombre="${prod.nombre}" data-precio="${prod.precio}">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-title">${prod.nombre}</h3>
-                        <p class="product-category">${prod.categoria || 'Cuidado Premium'}</p>
-                        <span class="product-price">$${Number(prod.precio).toLocaleString('es-AR')}</span>
                     </div>
                 </article>
             `;
