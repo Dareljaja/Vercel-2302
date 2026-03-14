@@ -10,6 +10,8 @@ function getSupabase() {
 const supabaseAdmin = getSupabase();
 
 const sanitize = (str) => str?.toString().replace(/[&<>\\"'\\/]/g, '');
+// URLs no se sanitizan con lo anterior (quitaría / y &). Solo recortar espacios.
+const sanitizeUrl = (str) => (str && typeof str === 'string' ? str.trim() : '') || '';
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
@@ -68,7 +70,7 @@ export default async function handler(req, res) {
       const product = {
         nombre: sanitize(input.name) || '',
         precio: parseFloat(input.price) || 0,
-        imagen_url: sanitize(input.image_url) || '',
+        imagen_url: sanitizeUrl(input.image_url),
         categoria: sanitize(input.category) || 'face',
         tamaño: sanitize(input.size) || '',
         'descripcion corta': sanitize(input.shortDescription) || '',
@@ -94,7 +96,7 @@ export default async function handler(req, res) {
       const cleanUpdate = {};
       if (updateData.name !== undefined) cleanUpdate.nombre = sanitize(updateData.name);
       if (updateData.price !== undefined) cleanUpdate.precio = parseFloat(updateData.price) || 0;
-      if (updateData.image_url !== undefined) cleanUpdate.imagen_url = sanitize(updateData.image_url);
+      if (updateData.image_url !== undefined) cleanUpdate.imagen_url = sanitizeUrl(updateData.image_url);
       if (updateData.category !== undefined) cleanUpdate.categoria = sanitize(updateData.category);
       if (updateData.size !== undefined) cleanUpdate.tamaño = sanitize(updateData.size);
       if (updateData.shortDescription !== undefined) cleanUpdate['descripcion corta'] = sanitize(updateData.shortDescription);
