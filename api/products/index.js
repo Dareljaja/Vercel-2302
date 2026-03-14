@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       name: p.nombre ?? p.name,
       price: p.precio ?? p.price,
       description: p['descripcion completa'] ?? p.descripcion ?? p.description,
-      image: p.imagen_url ?? p.image,
+      imagen_url: p.imagen_url ?? p.image,
       category: p.categoria ?? p.category
     }));
 

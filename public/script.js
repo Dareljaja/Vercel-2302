@@ -45,7 +45,7 @@ function renderProducts(productsToRender) {
     productsGrid.innerHTML = productsToRender.map((product) => `
         <article class="product-card" onclick="window.location.href='product-detail.html?id=${product.id}'">
             <div class="product-image">
-                <img src="${product.image || product.imagen_url}" alt="${product.name}" loading="lazy">
+                <img src="${product.imagen_url || product.image}" alt="${product.name}" loading="lazy">
             </div>
             <div class="product-content">
                 <span class="product-category">${product.category}</span>
@@ -65,7 +65,7 @@ function renderCollection() {
     const collectionProducts = products.slice(0, 8);
     collectionGrid.innerHTML = collectionProducts.map((product) => `
         <article class="collection-item" onclick="window.location.href='product-detail.html?id=${product.id}'">
-            <img src="${product.image || product.imagen_url}" alt="${product.name}">
+            <img src="${product.imagen_url || product.image}" alt="${product.name}">
             <div class="collection-overlay">
                 <h3 class="collection-title">${product.name}</h3>
                 <span class="collection-price">$${product.price}</span>
