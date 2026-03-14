@@ -532,7 +532,6 @@
                             localStorage.setItem(cartKey, JSON.stringify(cart));
                             if (typeof window.refreshCartUI === 'function') window.refreshCartUI();
                         }
-                        alert(qty === 1 ? 'Producto agregado al carrito' : qty + ' unidades agregadas al carrito');
                     };
                 } else {
                     document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:100px;'>Producto no encontrado</h1>";

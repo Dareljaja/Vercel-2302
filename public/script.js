@@ -205,11 +205,17 @@ function loadCartFromStorage() {
 
 function initEventListeners() {
     document.getElementById('cartBtn')?.addEventListener('click', () => {
-        cartSidebar.classList.add('active');
-        cartOverlay.classList.add('active');
+        cartSidebar?.classList.add('active');
+        cartOverlay?.classList.add('active');
     });
     document.getElementById('cartClose')?.addEventListener('click', () => {
-        cartSidebar.classList.remove('active');
-        cartOverlay.classList.remove('active');
+        cartSidebar?.classList.remove('active');
+        cartOverlay?.classList.remove('active');
+    });
+    document.getElementById('checkoutBtn')?.addEventListener('click', () => {
+        if (cart.length === 0) return;
+        cartSidebar?.classList.remove('active');
+        cartOverlay?.classList.remove('active');
+        window.location.href = 'checkout.html';
     });
 }

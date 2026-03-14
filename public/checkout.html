@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar compra | 2302</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .checkout-page { max-width: 600px; margin: 40px auto; padding: 20px; }
+        .checkout-title { color: #c9a962; font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 24px; }
+        .checkout-list { list-style: none; padding: 0; margin: 0 0 24px 0; border: 1px solid rgba(201,169,98,0.2); border-radius: 8px; overflow: hidden; }
+        .checkout-item { display: flex; align-items: center; gap: 16px; padding: 16px; border-bottom: 1px solid rgba(201,169,98,0.1); background: rgba(0,0,0,0.3); }
+        .checkout-item:last-child { border-bottom: none; }
+        .checkout-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; }
+        .checkout-item-info { flex: 1; }
+        .checkout-item-name { color: #fff; font-weight: 600; }
+        .checkout-item-qty { color: #999; font-size: 0.9rem; }
+        .checkout-item-price { color: #c9a962; font-weight: 600; }
+        .checkout-total { text-align: right; padding: 20px; background: rgba(201,169,98,0.08); border-radius: 8px; margin-bottom: 24px; }
+        .checkout-total span { color: #c9a962; font-size: 1.25rem; font-weight: 700; }
+        .checkout-empty { text-align: center; padding: 60px 20px; color: #999; }
+        .checkout-empty a { color: #c9a962; text-decoration: none; }
+        .checkout-actions { display: flex; flex-direction: column; gap: 12px; }
+        .checkout-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 24px; text-decoration: none; border-radius: 8px; font-weight: 700; letter-spacing: 1px; transition: all 0.2s; }
+        .btn-whatsapp { background: #25d366; color: #fff; border: none; }
+        .btn-whatsapp:hover { background: #20bd5a; transform: translateY(-1px); }
+        .btn-back { background: transparent; color: #c9a962; border: 1px solid rgba(201,169,98,0.4); }
+        .btn-back:hover { background: rgba(201,169,98,0.1); }
+    </style>
+</head>
+<body style="background: #0a0a0a; color: #fff; font-family: 'DM Sans', sans-serif; min-height: 100vh;">
+    <header class="detail-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #1a1a1a; background: #000;">
+        <a href="index.html" style="color: #c9a962; text-decoration: none; letter-spacing: 2px; font-size: 0.8rem;">
+            <i class="fas fa-arrow-left"></i> VOLVER
+        </a>
+        <span style="color: #c9a962; font-size: 1.25rem; font-weight: 600;">23<span style="color: #fff;">02</span></span>
+    </header>
+
+    <main class="checkout-page">
+        <h1 class="checkout-title">FINALIZAR COMPRA</h1>
+        <div id="checkoutContent"></div>
+    </main>
+
+    <script>
+        (function() {
+            const CART_KEY = '2302_cart';
+            const PLACEHOLDER_IMG = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%231a1a1a" width="200" height="200"/%3E%3Ctext fill="%23666" x="100" y="100" text-anchor="middle" dominant-baseline="middle" font-size="14"%3ESin imagen%3C/text%3E%3C/svg%3E';
+            const WHATSAPP_LINK = 'https://wa.me/message/NE6P75Q2VMSLH1';
+
+            function getPrice(item) { return Number(item.price ?? item.precio ?? 0); }
+            function getName(item) { return item.name ?? item.nombre ?? 'Producto'; }
+            function getImg(item) { return item.imagen_url ?? item.image ?? PLACEHOLDER_IMG; }
+
+            const cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+
+            const container = document.getElementById('checkoutContent');
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="checkout-empty">
+                        <p>Tu carrito está vacío.</p>
+                        <a href="index.html"><i class="fas fa-shopping-bag"></i> Ver productos</a>
+                    </div>`;
+                return;
+            }
+
+            let total = 0;
+            const lines = [];
+            const itemsHtml = cart.map(item => {
+                const price = getPrice(item);
+                const subtotal = price * item.quantity;
+                total += subtotal;
+                lines.push(`${item.quantity}x ${getName(item)} - $${subtotal.toLocaleString()}`);
+                return `
+                    <li class="checkout-item">
+                        <img src="${getImg(item)}" alt="" onerror="this.src='${PLACEHOLDER_IMG}'">
+                        <div class="checkout-item-info">
+                            <div class="checkout-item-name">${getName(item).replace(/</g, '&lt;')}</div>
+                            <div class="checkout-item-qty">Cantidad: ${item.quantity}</div>
+                        </div>
+                        <div class="checkout-item-price">$${subtotal.toLocaleString()}</div>
+                    </li>`;
+            }).join('');
+
+            const text = encodeURIComponent('Hola, quiero finalizar mi compra:\n\n' + lines.join('\n') + '\n\nTotal: $' + total.toLocaleString());
+
+            container.innerHTML = `
+                <ul class="checkout-list">${itemsHtml}</ul>
+                <div class="checkout-total">TOTAL: <span id="checkoutTotal">$${total.toLocaleString()}</span></div>
+                <div class="checkout-actions">
+                    <a href="${WHATSAPP_LINK}?text=${text}" class="btn btn-whatsapp" target="_blank" rel="noopener">
+                        <i class="fab fa-whatsapp"></i> Completar compra por WhatsApp
+                    </a>
+                    <a href="index.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Seguir comprando</a>
+                </div>`;
+        })();
+    </script>
+</body>
+</html>
