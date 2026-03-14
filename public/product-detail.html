@@ -288,7 +288,18 @@
     <script>
         function toggleSection(header) {
             const section = header.closest('.collapsible-section');
-            section.classList.toggle('active');
+            const isCurrentlyActive = section.classList.contains('active');
+            
+            // Cerrar todas las secciones
+            document.querySelectorAll('.collapsible-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            
+            // Si la sección clickeada no estaba activa, abrirla
+            // Si estaba activa, se cierra (porque ya la removimos arriba)
+            if (!isCurrentlyActive) {
+                section.classList.add('active');
+            }
         }
         
         window.toggleSection = toggleSection;
