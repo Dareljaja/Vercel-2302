@@ -43,11 +43,26 @@ export default async function handler(req, res) {
       return {
         ...p,
         name: p.nombre ?? p.name,
+        nombre: p.nombre ?? p.name,
         price: p.precio ?? p.price,
-        description: p['descripcion completa'] ?? p.descripcion ?? p.description,
+        precio: p.precio ?? p.price,
+        // Descripción completa (prioridad: con espacio, sin espacio, descripcion, description)
+        description: p['descripcion completa'] ?? p['descripcioncompleta'] ?? p.descripcion ?? p.description,
+        descripcion: p['descripcion completa'] ?? p['descripcioncompleta'] ?? p.descripcion ?? p.description,
+        // Descripción corta
+        shortDescription: p['descripcion corta'] ?? p['descripcioncorta'] ?? p.shortDescription,
+        // Otros campos
         image: imageUrl,
         imagen_url: imageUrl,
-        category: p.categoria ?? p.category
+        category: p.categoria ?? p.category,
+        categoria: p.categoria ?? p.category,
+        size: p.tamaño ?? p.size,
+        tamaño: p.tamaño ?? p.size,
+        ingredients: p.ingredientes ?? p.ingredients,
+        ingredientes: p.ingredientes ?? p.ingredients,
+        howToUse: p['modo de uso'] ?? p['mododeuso'] ?? p.howToUse,
+        popular: p.popular ?? false,
+        offer: p.offer ?? false
       };
     });
 

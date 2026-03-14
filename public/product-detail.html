@@ -28,7 +28,27 @@
             
             <div style="border-top: 1px solid #1a1a1a; padding-top: 25px;">
                 <p style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">DESCRIPCIÓN</p>
-                <p id="p-desc" style="color: #a0a0a0; line-height: 1.8; font-size: 1rem; margin-bottom: 35px;"></p>
+                <p id="p-desc" style="color: #a0a0a0; line-height: 1.8; font-size: 1rem; margin-bottom: 25px; white-space: pre-wrap;"></p>
+                
+                <div id="p-short-desc" style="display: none; margin-bottom: 25px;">
+                    <p style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">DESCRIPCIÓN CORTA</p>
+                    <p style="color: #a0a0a0; line-height: 1.8; font-size: 0.95rem; white-space: pre-wrap;"></p>
+                </div>
+                
+                <div id="p-size" style="display: none; margin-bottom: 25px;">
+                    <p style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">TAMAÑO</p>
+                    <p style="color: #a0a0a0; font-size: 0.95rem;"></p>
+                </div>
+                
+                <div id="p-ingredients" style="display: none; margin-bottom: 25px;">
+                    <p style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">INGREDIENTES</p>
+                    <p style="color: #a0a0a0; line-height: 1.8; font-size: 0.95rem; white-space: pre-wrap;"></p>
+                </div>
+                
+                <div id="p-how-to-use" style="display: none; margin-bottom: 25px;">
+                    <p style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">MODO DE USO</p>
+                    <p style="color: #a0a0a0; line-height: 1.8; font-size: 0.95rem; white-space: pre-wrap;"></p>
+                </div>
             </div>
 
             <button id="add-btn" class="product-btn" style="width: 100%; padding: 18px; cursor: pointer; background: #c9a962; color: #000; border: none; font-weight: bold; letter-spacing: 1px;">
@@ -54,11 +74,54 @@
                 const product = products.find(p => p.id == productId);
 
                 if (product) {
-                    // Llenamos los datos
-                    document.getElementById('p-name').textContent = product.nombre || product.name;
-                    document.getElementById('p-price').textContent = `$${product.precio || product.price}`;
-                    document.getElementById('p-desc').textContent = product.descripcion || product.description || 'Sin descripción disponible.';
-                    document.getElementById('p-category').textContent = product.categoria || 'Cuidado Premium';
+                    // Llenamos los datos básicos
+                    document.getElementById('p-name').textContent = product.nombre || product.name || 'Producto';
+                    document.getElementById('p-price').textContent = `$${Number(product.precio || product.price || 0).toLocaleString()}`;
+                    
+                    // Descripción completa (priorizar description que es el mapeo correcto)
+                    const fullDesc = product.description || product.descripcion || 'Sin descripción disponible.';
+                    document.getElementById('p-desc').textContent = fullDesc;
+                    
+                    // Categoría
+                    const categoryMap = {
+                        'face': 'ROSTRO',
+                        'body': 'CUERPO',
+                        'hair': 'CABELLO'
+                    };
+                    const category = product.categoria || product.category || '';
+                    document.getElementById('p-category').textContent = categoryMap[category.toLowerCase()] || category.toUpperCase() || 'CUIDADO PREMIUM';
+                    
+                    // Descripción corta
+                    const shortDesc = product.shortDescription || product['descripcion corta'];
+                    if (shortDesc && shortDesc.trim()) {
+                        const shortDescEl = document.getElementById('p-short-desc');
+                        shortDescEl.style.display = 'block';
+                        shortDescEl.querySelector('p:last-child').textContent = shortDesc;
+                    }
+                    
+                    // Tamaño
+                    const size = product.size || product.tamaño;
+                    if (size && size.trim()) {
+                        const sizeEl = document.getElementById('p-size');
+                        sizeEl.style.display = 'block';
+                        sizeEl.querySelector('p:last-child').textContent = size;
+                    }
+                    
+                    // Ingredientes
+                    const ingredients = product.ingredients || product.ingredientes;
+                    if (ingredients && ingredients.trim()) {
+                        const ingredientsEl = document.getElementById('p-ingredients');
+                        ingredientsEl.style.display = 'block';
+                        ingredientsEl.querySelector('p:last-child').textContent = ingredients;
+                    }
+                    
+                    // Modo de uso
+                    const howToUse = product.howToUse || product['modo de uso'];
+                    if (howToUse && howToUse.trim()) {
+                        const howToUseEl = document.getElementById('p-how-to-use');
+                        howToUseEl.style.display = 'block';
+                        howToUseEl.querySelector('p:last-child').textContent = howToUse;
+                    }
                     
                     const img = document.getElementById('p-image');
                     const imageUrl = product.imagen_url || product.image || '';
