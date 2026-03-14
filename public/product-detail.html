@@ -151,6 +151,122 @@
             color: #d0d0d0;
         }
         
+        .product-image-click-wrap {
+            position: relative;
+            border-radius: 8px;
+        }
+        .product-image-click-wrap:hover .product-image-zoom-hint { opacity: 1; }
+        .product-image-zoom-hint {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #c9a962;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+        
+        /* Lightbox / zoom imagen */
+        .image-lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0,0,0,0.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        .image-lightbox.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .image-lightbox .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border: 1px solid rgba(201,169,98,0.4);
+            background: rgba(20,20,20,0.9);
+            color: #c9a962;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            z-index: 2;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .image-lightbox .lightbox-close:hover {
+            background: rgba(201,169,98,0.2);
+            transform: scale(1.05);
+        }
+        .image-lightbox .lightbox-zoom-controls {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(20,20,20,0.9);
+            border: 1px solid rgba(201,169,98,0.3);
+            border-radius: 12px;
+            z-index: 2;
+        }
+        .image-lightbox .lightbox-zoom-controls button {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(201,169,98,0.4);
+            background: transparent;
+            color: #c9a962;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .image-lightbox .lightbox-zoom-controls button:hover {
+            background: rgba(201,169,98,0.15);
+            transform: scale(1.05);
+        }
+        .image-lightbox .lightbox-zoom-controls span {
+            color: #e0e0e0;
+            font-size: 0.9rem;
+            min-width: 48px;
+            text-align: center;
+        }
+        .image-lightbox .lightbox-content {
+            position: absolute;
+            inset: 0;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .image-lightbox .lightbox-content:active { cursor: grabbing; }
+        .image-lightbox .lightbox-content img {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+            transform-origin: center center;
+            user-select: none;
+            pointer-events: none;
+        }
+        
         .product-title {
             font-size: 1.8rem;
             font-family: 'Playfair Display', serif;
@@ -332,7 +448,10 @@
     
     <main id="product-container" style="max-width: 1100px; margin: 50px auto; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 50px;">
         <div class="product-image-side">
-            <img id="p-image" src="" alt="" style="width: 100%; border: 1px solid rgba(201, 169, 98, 0.2); border-radius: 8px; display: none;">
+            <div class="product-image-click-wrap" id="productImageWrap" style="display: none; cursor: zoom-in;">
+                <img id="p-image" src="" alt="" style="width: 100%; border: 1px solid rgba(201, 169, 98, 0.2); border-radius: 8px;">
+                <span class="product-image-zoom-hint"><i class="fas fa-search-plus"></i> Clic para ampliar</span>
+            </div>
             <div id="loading-img" style="aspect-ratio: 1/1; background: #1a1a1a; display: flex; align-items: center; justify-content: center; border-radius: 8px;">Cargando imagen...</div>
         </div>
 
@@ -424,6 +543,19 @@
             </div>
         </div>
     </main>
+
+    <!-- Lightbox para zoom de imagen -->
+    <div class="image-lightbox" id="imageLightbox" role="dialog" aria-modal="true" aria-label="Vista ampliada de la imagen">
+        <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        <div class="lightbox-zoom-controls">
+            <button type="button" id="lightboxZoomOut" aria-label="Reducir zoom">−</button>
+            <span id="lightboxZoomLevel">100%</span>
+            <button type="button" id="lightboxZoomIn" aria-label="Aumentar zoom">+</button>
+        </div>
+        <div class="lightbox-content" id="lightboxContent">
+            <img id="lightboxImage" src="" alt="">
+        </div>
+    </div>
 
     <script>
         function toggleSection(header) {
@@ -560,6 +692,74 @@
                     img.onerror = function() { this.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%231a1a1a" width="200" height="200"/%3E%3Ctext fill="%23666" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="14"%3ESin imagen%3C/text%3E%3C/svg%3E'; this.onerror = null; };
                     img.style.display = 'block';
                     document.getElementById('loading-img').style.display = 'none';
+                    const wrap = document.getElementById('productImageWrap');
+                    if (wrap) wrap.style.display = 'block';
+
+                    // Lightbox: abrir al hacer clic en la imagen, zoom y arrastre
+                    (function initImageLightbox() {
+                        const lightbox = document.getElementById('imageLightbox');
+                        const lightboxImg = document.getElementById('lightboxImage');
+                        const lightboxContent = document.getElementById('lightboxContent');
+                        const zoomLevelEl = document.getElementById('lightboxZoomLevel');
+                        let scale = 1, posX = 0, posY = 0, isDragging = false, startX, startY, startPosX, startPosY;
+
+                        function openLightbox() {
+                            const src = document.getElementById('p-image').src;
+                            if (!src || src.startsWith('data:image/svg')) return;
+                            lightboxImg.src = src;
+                            lightboxImg.alt = document.getElementById('p-image').alt || 'Imagen del producto';
+                            scale = 1; posX = 0; posY = 0;
+                            applyLightboxTransform();
+                            if (zoomLevelEl) zoomLevelEl.textContent = '100%';
+                            lightbox.classList.add('is-open');
+                            document.body.style.overflow = 'hidden';
+                        }
+                        function closeLightbox() {
+                            lightbox.classList.remove('is-open');
+                            document.body.style.overflow = '';
+                        }
+                        function applyLightboxTransform() {
+                            lightboxImg.style.transform = 'translate(' + posX + 'px, ' + posY + 'px) scale(' + scale + ')';
+                        }
+                        function setZoom(delta) {
+                            scale = Math.max(0.25, Math.min(5, scale + delta));
+                            if (zoomLevelEl) zoomLevelEl.textContent = Math.round(scale * 100) + '%';
+                            applyLightboxTransform();
+                        }
+
+                        document.getElementById('p-image').addEventListener('click', function(e) { e.preventDefault(); openLightbox(); });
+                        document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+                        lightbox.addEventListener('click', function(e) { if (e.target === lightbox) closeLightbox(); });
+                        document.getElementById('lightboxZoomIn').addEventListener('click', function() { setZoom(0.25); });
+                        document.getElementById('lightboxZoomOut').addEventListener('click', function() { setZoom(-0.25); });
+
+                        lightboxContent.addEventListener('wheel', function(e) {
+                            if (!lightbox.classList.contains('is-open')) return;
+                            e.preventDefault();
+                            setZoom(e.deltaY > 0 ? -0.15 : 0.15);
+                        }, { passive: false });
+
+                        lightboxContent.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            isDragging = true;
+                            startX = e.clientX; startY = e.clientY;
+                            startPosX = posX; startPosY = posY;
+                        });
+                        document.addEventListener('mousemove', function(e) {
+                            if (!isDragging) return;
+                            posX = startPosX + (e.clientX - startX);
+                            posY = startPosY + (e.clientY - startY);
+                            applyLightboxTransform();
+                        });
+                        document.addEventListener('mouseup', function() { isDragging = false; });
+
+                        document.addEventListener('keydown', function(e) {
+                            if (!lightbox.classList.contains('is-open')) return;
+                            if (e.key === 'Escape') closeLightbox();
+                            if (e.key === '+') setZoom(0.25);
+                            if (e.key === '-') setZoom(-0.25);
+                        });
+                    })();
 
                     // Selector de cantidad
                     const qtyValueEl = document.getElementById('qty-value');
