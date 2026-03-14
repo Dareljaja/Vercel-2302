@@ -299,14 +299,15 @@
             }
         }
 
-        // Load products
+        // Load products (reintenta una vez si la primera carga falla o viene vacía — cold start Vercel)
         async function loadProducts() {
             try {
-                const res = await fetch('/api/admin/products');
+                const res = await fetch('/api/admin/products', { cache: 'no-store' });
                 const data = await safeJson(res);
                 if (!res.ok) throw new Error(data.message || 'Error al cargar');
                 // Aceptar data.products o data si es array
-                products = Array.isArray(data.products) ? data.products : (Array.isArray(data) ? data : []);
+                const list = Array.isArray(data.products) ? data.products : (Array.isArray(data) ? data : []);
+                products = list;
                 renderProducts();
             } catch (err) {
                 console.error('Error loading products:', err);
@@ -326,7 +327,8 @@
                     <div class="empty-state">
                         <i class="fas fa-box-open" style="font-size:4rem;opacity:.3;margin-bottom:20px;display:block;"></i>
                         <h3>No hay productos</h3>
-                        <p>Crea tu primer producto arriba o revisa que la API /api/admin/products responda correctamente (F12 → pestaña Red).</p>
+                        <p>Crea tu primer producto arriba o revisa que la API responda correctamente (F12 → Red).</p>
+                        <button type="button" class="btn" onclick="loadProducts()" style="margin-top:16px;"><i class="fas fa-sync-alt"></i> Reintentar carga</button>
                     </div>
                 `;
                 return;
@@ -563,8 +565,11 @@ ${products.map(p => {
             }
         });
 
-        // Init
+        // Init: cargar productos y reintentar a los 2s si siguen vacíos (evita cold start de Vercel)
         loadProducts();
+        setTimeout(function () {
+            if (products.length === 0) loadProducts();
+        }, 2000);
     </script>
 </body>
 </html>
