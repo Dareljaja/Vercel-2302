@@ -14,6 +14,10 @@
             font-family: 'Space Grotesk', sans-serif;
             min-height: 100vh;
         }
+        .top-shipping-banner { background: #fff; color: #333; padding: 10px 0; overflow: hidden; white-space: nowrap; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.5px; border-bottom: 1px solid #eee; }
+        .top-shipping-banner .marquee-wrap { display: inline-block; padding-left: 100%; animation: marquee 18s linear infinite; }
+        .top-shipping-banner .marquee-content { display: inline-block; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
         .admin-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -186,6 +190,11 @@
     </style>
 </head>
 <body>
+    <div class="top-shipping-banner" role="marquee" aria-label="Solo envíos a Córdoba">
+        <span class="marquee-wrap">
+            <span class="marquee-content">Solo envíos a Córdoba &nbsp;&nbsp;•&nbsp;&nbsp; Solo envíos a Córdoba &nbsp;&nbsp;•&nbsp;&nbsp; Solo envíos a Córdoba &nbsp;&nbsp;•&nbsp;&nbsp; Solo envíos a Córdoba &nbsp;&nbsp;•&nbsp;&nbsp; Solo envíos a Córdoba &nbsp;&nbsp;•&nbsp;&nbsp;</span>
+        </span>
+    </div>
     <div class="admin-container">
         <div class="admin-header">
             <h1 class="admin-title">2302 Admin <i class="fas fa-crown"></i></h1>
