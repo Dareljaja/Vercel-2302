@@ -58,7 +58,7 @@ function renderProducts(productsToRender) {
                 <span class="product-category">${product.category}</span>
                 <h3 class="product-name">${product.name || product.nombre}</h3>
                 <p class="product-price">$${product.price || product.precio}</p>
-                <button class="product-btn" onclick="event.stopPropagation(); addToCart(${JSON.stringify(product.id)})">
+                <button class="product-btn" onclick="event.stopPropagation(); addToCart(${JSON.stringify(product.id)}, event)">
                     AGREGAR AL CARRITO
                 </button>
             </div>
@@ -85,8 +85,8 @@ function renderCollection() {
     }).join('');
 }
 
-// Lógica de Carrito básica para que no de error
-window.addToCart = function(productId) {
+// Lógica de Carrito básica para que no de error (+ efecto visual en página principal)
+window.addToCart = function(productId, ev) {
     const product = products.find(p => p.id == productId);
     if (!product) return;
     const existing = cart.find(item => item.id == productId);
@@ -94,6 +94,23 @@ window.addToCart = function(productId) {
     else { cart.push({ ...product, quantity: 1 }); }
     saveCartToStorage();
     updateCartUI();
+
+    // Efecto visual: botón "agregado" + toast (solo si hay evento, ej. desde index)
+    const btn = ev && ev.target ? ev.target.closest('.product-btn') : null;
+    if (btn) {
+        const originalHTML = btn.innerHTML;
+        btn.classList.add('added');
+        btn.innerHTML = '<i class="fas fa-check"></i> AGREGADO';
+        btn.disabled = true;
+        const toast = document.getElementById('cartToast');
+        if (toast) toast.classList.add('show');
+        setTimeout(() => {
+            btn.classList.remove('added');
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+            if (toast) toast.classList.remove('show');
+        }, 2000);
+    }
 };
 
 // Para product-detail: agregar con cantidad y objeto producto (no depende de array products)
