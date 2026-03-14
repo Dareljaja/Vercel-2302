@@ -32,32 +32,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadProducts() {
     try {
-const response = await fetch('/api/products');
+        const response = await fetch('/api/products');
         const data = await response.json();
-    products = Array.isArray(data) ? data : [];
+        products = Array.isArray(data) ? data : [];
         window.products = products;
         renderProducts(products);
         renderCollection();
+        initProductsFilter();
     } catch (error) {
         console.error('Error:', error);
     }
 }
 
-function renderProducts(productsToRender) {
-    if (!productsGrid || productsRendered) return;
-    productsRendered = true;
-    
-    productsGrid.innerHTML = productsToRender.map((product) => {
+function buildProductCardsHTML(productsToRender) {
+    return productsToRender.map((product) => {
         const imgUrl = product.imagen_url || product.image;
+        const name = product.name || product.nombre || '';
+        const category = product.category || product.categoria || '';
+        const price = product.price ?? product.precio ?? 0;
         return `
         <article class="product-card" onclick="window.location.href='product-detail.html?id=${product.id}'">
             <div class="product-image">
-                <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${(product.name || '').replace(/"/g, '&quot;')}" loading="lazy" crossorigin="anonymous" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;">
+                <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${name.replace(/"/g, '&quot;')}" loading="lazy" crossorigin="anonymous" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;">
             </div>
             <div class="product-content">
-                <span class="product-category">${product.category}</span>
-                <h3 class="product-name">${product.name || product.nombre}</h3>
-                <p class="product-price">$${product.price || product.precio}</p>
+                <span class="product-category">${category}</span>
+                <h3 class="product-name">${name}</h3>
+                <p class="product-price">$${price}</p>
                 <button class="product-btn" onclick="event.stopPropagation(); addToCart(${JSON.stringify(product.id)}, event)">
                     AGREGAR AL CARRITO
                 </button>
@@ -65,6 +66,48 @@ function renderProducts(productsToRender) {
         </article>
     `;
     }).join('');
+}
+
+function getFilteredProducts() {
+    const searchEl = document.getElementById('productsSearch');
+    const categoryEl = document.getElementById('productsCategory');
+    const query = (searchEl && searchEl.value) ? searchEl.value.trim().toLowerCase() : '';
+    const category = (categoryEl && categoryEl.value) ? categoryEl.value.trim().toLowerCase() : '';
+    return products.filter((p) => {
+        const matchCategory = !category || (p.category || p.categoria || '').toLowerCase() === category;
+        if (!matchCategory) return false;
+        if (!query) return true;
+        const name = (p.name || p.nombre || '').toLowerCase();
+        const desc = (p.shortDescription || p.description || p.descripcion || '').toLowerCase();
+        const cat = (p.category || p.categoria || '').toLowerCase();
+        return name.includes(query) || desc.includes(query) || cat.includes(query);
+    });
+}
+
+function applyProductsFilter() {
+    if (!productsGrid) return;
+    const filtered = getFilteredProducts();
+    productsGrid.innerHTML = buildProductCardsHTML(filtered);
+    const emptyState = document.getElementById('productsEmptyState');
+    if (emptyState) {
+        emptyState.style.display = filtered.length ? 'none' : 'block';
+    }
+    productsGrid.style.display = filtered.length ? '' : 'none';
+}
+
+function initProductsFilter() {
+    const searchEl = document.getElementById('productsSearch');
+    const categoryEl = document.getElementById('productsCategory');
+    if (searchEl) searchEl.addEventListener('input', applyProductsFilter);
+    if (categoryEl) categoryEl.addEventListener('change', applyProductsFilter);
+}
+
+function renderProducts(productsToRender) {
+    if (!productsGrid || productsRendered) return;
+    productsRendered = true;
+    productsGrid.innerHTML = buildProductCardsHTML(productsToRender);
+    const emptyState = document.getElementById('productsEmptyState');
+    if (emptyState) emptyState.style.display = 'none';
 }
 
 function renderCollection() {

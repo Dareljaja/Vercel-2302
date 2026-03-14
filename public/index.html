@@ -117,7 +117,28 @@
                 <p class="section-description">Formulaciones de siguiente generación para el cuidado avanzado.</p>
             </div>
             
+            <div class="products-toolbar">
+                <div class="products-search-wrap">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="text" id="productsSearch" placeholder="Buscar productos..." aria-label="Buscar productos" autocomplete="off">
+                </div>
+                <div class="products-filter-wrap">
+                    <label for="productsCategory" class="products-filter-label">Categoría</label>
+                    <select id="productsCategory" aria-label="Filtrar por categoría">
+                        <option value="">Todas</option>
+                        <option value="face">Rostro</option>
+                        <option value="body">Cuerpo</option>
+                        <option value="hair">Cabello</option>
+                    </select>
+                </div>
+            </div>
+            
             <div class="products-grid" id="productsGrid"></div>
+            <div class="products-empty-state" id="productsEmptyState" style="display: none;">
+                <i class="fas fa-search"></i>
+                <p>No hay productos que coincidan con tu búsqueda.</p>
+                <span>Prueba otro término o quita el filtro de categoría.</span>
+            </div>
         </div>
     </section>
 
