@@ -61,7 +61,10 @@
                     document.getElementById('p-category').textContent = product.categoria || 'Cuidado Premium';
                     
                     const img = document.getElementById('p-image');
-                    img.src = product.imagen_url || product.image;
+                    const imageUrl = product.imagen_url || product.image || '';
+                    img.src = imageUrl || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%231a1a1a" width="200" height="200"/%3E%3Ctext fill="%23666" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="14"%3ESin imagen%3C/text%3E%3C/svg%3E';
+                    img.alt = product.nombre || product.name || 'Producto';
+                    img.onerror = function() { this.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%231a1a1a" width="200" height="200"/%3E%3Ctext fill="%23666" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="14"%3ESin imagen%3C/text%3E%3C/svg%3E'; this.onerror = null; };
                     img.style.display = 'block';
                     document.getElementById('loading-img').style.display = 'none';
 

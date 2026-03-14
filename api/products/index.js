@@ -37,15 +37,19 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    // Mapear columnas en español a name, price, etc. para la web
-    const products = (data || []).map(p => ({
-      ...p,
-      name: p.nombre ?? p.name,
-      price: p.precio ?? p.price,
-      description: p['descripcion completa'] ?? p.descripcion ?? p.description,
-      imagen_url: p.imagen_url ?? p.image,
-      category: p.categoria ?? p.category
-    }));
+    // Mapear columnas en español a name, price, image, etc. para la web
+    const products = (data || []).map(p => {
+      const imageUrl = p.imagen_url ?? p.image ?? '';
+      return {
+        ...p,
+        name: p.nombre ?? p.name,
+        price: p.precio ?? p.price,
+        description: p['descripcion completa'] ?? p.descripcion ?? p.description,
+        image: imageUrl,
+        imagen_url: imageUrl,
+        category: p.categoria ?? p.category
+      };
+    });
 
     return res.status(200).json(products);
 
