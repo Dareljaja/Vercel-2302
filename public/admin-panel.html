@@ -235,7 +235,19 @@
                         <textarea id="howToUse" rows="2"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>URL de imagen (recomendado)</label>
+                        <label>Subir imagen</label>
+                        <div id="uploadArea" class="upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Arrastra una imagen aquí o haz clic para seleccionar</p>
+                            <input type="file" id="imageFile" accept="image/*" style="display: none;">
+                        </div>
+                        <div id="imagePreview" style="display: none;">
+                            <img id="previewImg" class="image-preview" alt="Preview">
+                        </div>
+                        <div id="uploadUrl" style="margin-top: 10px; color: #28a745; font-size: 0.9em;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>O usar URL de imagen</label>
                         <input type="text" id="imageUrlInput" placeholder="https://ejemplo.com/imagen.jpg" autocomplete="url">
                     </div>
 
@@ -292,6 +304,30 @@
         let editingId = null;
         let uploadUrl = '';
 
+        // Verificar autenticación al cargar
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+            alert('No estás autenticado. Redirigiendo al login...');
+            window.location.href = '/admin.html';
+        }
+
+        // Helper para obtener headers con autenticación
+        function getAuthHeaders() {
+            const token = localStorage.getItem('adminToken');
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
+        // Helper para headers sin Content-Type (para FormData)
+        function getAuthHeadersFormData() {
+            const token = localStorage.getItem('adminToken');
+            return {
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
         async function safeJson(res) {
             const text = await res.text();
             try {
@@ -319,10 +355,22 @@
             const timeoutId = setTimeout(() => controller.abort(), 15000);
 
             try {
-                const res = await fetch('/api/admin/products', { cache: 'no-store', signal: controller.signal });
+                const res = await fetch('/api/admin/products', { 
+                    cache: 'no-store', 
+                    signal: controller.signal,
+                    headers: getAuthHeaders()
+                });
                 clearTimeout(timeoutId);
                 const data = await safeJson(res);
-                if (!res.ok) throw new Error(data.message || 'Error al cargar');
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        alert('Sesión expirada. Redirigiendo al login...');
+                        localStorage.removeItem('adminToken');
+                        window.location.href = '/admin.html';
+                        return;
+                    }
+                    throw new Error(data.message || 'Error al cargar');
+                }
                 const list = Array.isArray(data.products) ? data.products : (Array.isArray(data) ? data : []);
                 products = list;
                 renderProducts();
@@ -438,12 +486,20 @@ ${products.map(p => {
 
                 const res = await fetch('/api/admin/products', {
                     method: editingId ? 'PUT' : 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(editingId ? { id: editingId, ...productData } : productData)
                 });
 
                 const data = await safeJson(res);
-                if (!res.ok) throw new Error(data.message);
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        alert('Sesión expirada. Redirigiendo al login...');
+                        localStorage.removeItem('adminToken');
+                        window.location.href = '/admin.html';
+                        return;
+                    }
+                    throw new Error(data.message);
+                }
 
                 const savedImg = (data.product && (data.product.image_url || data.product.imagen_url)) || '';
                 let msg = editingId ? 'Producto actualizado' : 'Producto creado';
@@ -456,6 +512,9 @@ ${products.map(p => {
                 document.getElementById('productForm').reset();
                 uploadUrl = '';
                 document.getElementById('imageUrlInput').value = '';
+                document.getElementById('uploadUrl').textContent = '';
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('previewImg').src = '';
                 editingId = null;
                 document.querySelector('#submitBtn i').className = 'fas fa-save';
 
@@ -505,16 +564,29 @@ ${products.map(p => {
 
                 const res = await fetch('/api/admin/upload', {
                     method: 'POST',
+                    headers: getAuthHeadersFormData(),
                     body: formData
                 });
 
                 const data = await safeJson(res);
-                if (!res.ok) throw new Error(data.message);
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        alert('Sesión expirada. Redirigiendo al login...');
+                        localStorage.removeItem('adminToken');
+                        window.location.href = '/admin.html';
+                        return;
+                    }
+                    throw new Error(data.message);
+                }
 
                 uploadUrl = data.url;
                 urlDisplay.textContent = `URL: ${data.url}`;
-                preview.src = URL.createObjectURL(file);
-                preview.style.display = 'block';
+                const previewImg = document.getElementById('previewImg');
+                const previewContainer = document.getElementById('imagePreview');
+                if (previewImg) {
+                    previewImg.src = URL.createObjectURL(file);
+                    previewContainer.style.display = 'block';
+                }
             } catch (err) {
                 alert('Error al subir: ' + err.message + '\n\nUsa "URL de imagen" para pegar un enlace directo a la imagen.');
             }
@@ -538,10 +610,26 @@ ${products.map(p => {
             document.getElementById('size').value = product.size;
             document.getElementById('ingredients').value = product.ingredients;
             document.getElementById('howToUse').value = product.howToUse;
-            document.getElementById('popular').checked = product.popular;
-            document.getElementById('offer').checked = product.offer;
+            document.getElementById('popular').checked = product.popular || false;
+            document.getElementById('offer').checked = product.offer || false;
             
-            document.getElementById('imageUrlInput').value = product.image_url || '';
+            const imageUrl = product.image_url || product.imagen_url || '';
+            document.getElementById('imageUrlInput').value = imageUrl;
+            uploadUrl = imageUrl;
+            
+            // Mostrar preview de imagen si existe
+            if (imageUrl) {
+                const previewImg = document.getElementById('previewImg');
+                const previewContainer = document.getElementById('imagePreview');
+                if (previewImg && previewContainer) {
+                    previewImg.src = imageUrl;
+                    previewContainer.style.display = 'block';
+                }
+                document.getElementById('uploadUrl').textContent = `URL: ${imageUrl}`;
+            } else {
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('uploadUrl').textContent = '';
+            }
 
             document.getElementById('submitBtn').innerHTML = '<i class="fas fa-sync"></i> Actualizar Producto';
             document.getElementById('name').focus();
@@ -553,10 +641,19 @@ ${products.map(p => {
             if (isNaN(idNorm)) return;
             try {
                 const res = await fetch(`/api/admin/products?id=${idNorm}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
                 });
                 const data = await safeJson(res);
-                if (!res.ok) throw new Error(data.message);
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        alert('Sesión expirada. Redirigiendo al login...');
+                        localStorage.removeItem('adminToken');
+                        window.location.href = '/admin.html';
+                        return;
+                    }
+                    throw new Error(data.message);
+                }
 
                 loadProducts();
             } catch (err) {
@@ -570,7 +667,8 @@ ${products.map(p => {
         }
 
         function logout() {
-            window.location.href = 'index.html';
+            localStorage.removeItem('adminToken');
+            window.location.href = '/admin.html';
         }
 
         window.logout = logout;

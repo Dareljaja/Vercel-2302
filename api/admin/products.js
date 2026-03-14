@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from './auth.js';
 
 function getSupabase() {
   const url = process.env.SUPABASE_URL;
@@ -16,9 +17,16 @@ const sanitizeUrl = (str) => (str && typeof str === 'string' ? str.trim() : '') 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
+    return;
+  }
+
+  // Verificar autenticación para todas las operaciones excepto OPTIONS
+  if (!requireAuth(req, res)) {
     return;
   }
 
@@ -65,7 +73,9 @@ export default async function handler(req, res) {
         category: p.categoria ?? p.category,
         size: p.tamaño ?? p.size,
         ingredients: p.ingredientes ?? p.ingredients,
-        howToUse: p['modo de uso'] ?? p['mododeuso'] ?? p.howToUse
+        howToUse: p['modo de uso'] ?? p['mododeuso'] ?? p.howToUse,
+        popular: p.popular ?? false,
+        offer: p.offer ?? false
       }));
 
       return res.status(200).json({ success: true, products });
@@ -84,7 +94,9 @@ export default async function handler(req, res) {
         'descripcion corta': sanitize(input.shortDescription) || '',
         'descripcion completa': sanitize(input.description) || '',
         ingredientes: sanitize(input.ingredients) || '',
-        'modo de uso': sanitize(input.howToUse) || ''
+        'modo de uso': sanitize(input.howToUse) || '',
+        popular: Boolean(input.popular) || false,
+        offer: Boolean(input.offer) || false
       };
 
       const { data, error } = await supabaseAdmin
@@ -95,7 +107,7 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
-      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'] };
+      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false };
       return res.status(201).json({ success: true, product: forFrontend });
 
     } else if (req.method === 'PUT') {
@@ -111,6 +123,8 @@ export default async function handler(req, res) {
       if (updateData.description !== undefined) cleanUpdate['descripcion completa'] = sanitize(updateData.description);
       if (updateData.ingredients !== undefined) cleanUpdate.ingredientes = sanitize(updateData.ingredients);
       if (updateData.howToUse !== undefined) cleanUpdate['modo de uso'] = sanitize(updateData.howToUse);
+      if (updateData.popular !== undefined) cleanUpdate.popular = Boolean(updateData.popular);
+      if (updateData.offer !== undefined) cleanUpdate.offer = Boolean(updateData.offer);
 
       const { data, error } = await supabaseAdmin
         .from('productos')
@@ -121,7 +135,7 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
-      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'] };
+      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false };
       return res.status(200).json({ success: true, product: forFrontend });
 
     } else if (req.method === 'DELETE') {
