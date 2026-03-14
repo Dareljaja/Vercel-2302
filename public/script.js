@@ -32,11 +32,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadProducts() {
     try {
-        const response = await fetch('/api/products');
-        const data = await response.json();
+        const [productsRes, categoriesRes] = await Promise.all([
+            fetch('/api/products'),
+            fetch('/api/categories').catch(() => null)
+        ]);
+        const data = await productsRes.json();
         products = Array.isArray(data) ? data : [];
         window.products = products;
         renderProducts(products);
+        const catSelect = document.getElementById('productsCategory');
+        if (catSelect && categoriesRes && categoriesRes.ok) {
+            const categories = await categoriesRes.json();
+            const list = Array.isArray(categories) ? categories : [];
+            catSelect.innerHTML = '<option value="">Todas</option>' + list.map(function (c) {
+                var slug = (c.slug || '').replace(/"/g, '&quot;');
+                var nom = (c.nombre || c.slug || '').replace(/</g, '&lt;');
+                return '<option value="' + slug + '">' + nom + '</option>';
+            }).join('');
+        }
         initProductsFilter();
         loadCollection();
     } catch (error) {
@@ -79,7 +92,7 @@ function renderCollection(items) {
             <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${titulo}" loading="lazy" crossorigin="anonymous" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;">
             <div class="collection-overlay">
                 <h3 class="collection-title">${titulo}</h3>
-                ${desc ? `<span class="collection-price">${desc}</span>` : ''}
+                ${desc ? `<span class="collection-subtitle">${desc}</span>` : ''}
             </div>
         </article>
     `;

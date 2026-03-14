@@ -586,19 +586,25 @@
             }
 
             try {
-                const response = await fetch('/api/products');
-                const data = await response.json();
+                const [productsRes, categoriesRes] = await Promise.all([
+                    fetch('/api/products'),
+                    fetch('/api/categories').catch(() => null)
+                ]);
+                const data = await productsRes.json();
                 const products = Array.isArray(data) ? data : [];
                 const product = products.find(p => p.id == productId);
+
+                let categoryMap = { 'face': 'ROSTRO', 'body': 'CUERPO', 'hair': 'CABELLO' };
+                if (categoriesRes && categoriesRes.ok) {
+                    const cats = await categoriesRes.json();
+                    if (Array.isArray(cats)) {
+                        cats.forEach(c => { categoryMap[(c.slug || '').toLowerCase()] = (c.nombre || c.slug || '').toUpperCase(); });
+                    }
+                }
 
                 if (product) {
                     // Badges
                     const badgesContainer = document.getElementById('badges-container');
-                    const categoryMap = {
-                        'face': 'ROSTRO',
-                        'body': 'CUERPO',
-                        'hair': 'CABELLO'
-                    };
                     const category = product.categoria || product.category || '';
                     const categoryText = categoryMap[category.toLowerCase()] || category.toUpperCase() || 'CUIDADO PREMIUM';
                     

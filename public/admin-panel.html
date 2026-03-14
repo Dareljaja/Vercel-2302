@@ -59,6 +59,7 @@
         .btn:hover { background: #fff; transform: translateY(-1px); }
         .btn-danger { background: #dc3545; color: white; }
         .btn-danger:hover { background: #c82333; }
+        .btn-sm { padding: 8px 14px; font-size: 0.9em; }
         .btn-secondary { background: #555; color: #d4af37; }
         .products-table {
             width: 100%;
@@ -206,6 +207,33 @@
             </button>
         </div>
 
+        <!-- Categorías (se usan en productos y en el filtro de la tienda) -->
+        <div class="form-container">
+            <h2 class="section-title"><i class="fas fa-tags"></i> Categorías</h2>
+            <p class="form-hint" style="margin-bottom: 16px;">Las categorías aparecen en el filtro de la página principal y al crear/editar productos.</p>
+            <form id="categoryForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" id="catNombre" required placeholder="Ej: Rostro">
+                    </div>
+                    <div class="form-group">
+                        <label>Slug (opcional)</label>
+                        <input type="text" id="catSlug" placeholder="Ej: face (se genera solo si se deja vacío)">
+                    </div>
+                </div>
+                <button type="submit" class="btn" id="categorySubmitBtn" style="margin-top: 8px;">
+                    <i class="fas fa-plus"></i> Agregar categoría
+                </button>
+            </form>
+            <div style="margin-top: 24px;">
+                <h3 class="section-title" style="font-size: 1.1rem; margin-bottom: 12px;">Listado de categorías</h3>
+                <div id="categoriesList">
+                    <div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;color:#d4af37;"></i> Cargando…</div>
+                </div>
+            </div>
+        </div>
+
         <div class="form-container">
             <h2 class="section-title"><i class="fas fa-plus"></i> Nuevo Producto</h2>
             <form id="productForm">
@@ -221,9 +249,7 @@
                     <div class="form-group">
                         <label>Categoría</label>
                         <select id="category">
-                            <option value="face">Rostro</option>
-                            <option value="body">Cuerpo</option>
-                            <option value="hair">Cabello</option>
+                            <option value="">Cargando…</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -433,6 +459,7 @@
         let uploadUrl = '';
         let collectionItems = [];
         let editingCollectionId = null;
+        let categories = [];
 
         // Verificar autenticación al cargar
         const token = localStorage.getItem('adminToken');
@@ -468,6 +495,82 @@
         }
 
         // Load products: muestra "Cargando...", fetch con timeout, luego tabla o vacío + botón Reintentar
+        async function loadCategories() {
+            const sel = document.getElementById('category');
+            const listEl = document.getElementById('categoriesList');
+            if (sel) sel.innerHTML = '<option value="">Cargando…</option>';
+            try {
+                const res = await fetch('/api/admin/categories', { cache: 'no-store', headers: getAuthHeaders() });
+                const data = await safeJson(res);
+                if (res.status === 401) {
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin.html';
+                    return;
+                }
+                categories = Array.isArray(data.categories) ? data.categories : [];
+                if (sel) {
+                    sel.innerHTML = '<option value="">— Seleccionar —</option>' + categories.map(c => '<option value="' + (c.slug || '').replace(/"/g, '&quot;') + '">' + (c.nombre || c.slug || '').replace(/</g, '&lt;') + '</option>').join('');
+                }
+                if (listEl) {
+                    if (!categories.length) {
+                        listEl.innerHTML = '<div class="empty-state"><p>No hay categorías. Agrega una arriba.</p></div>';
+                    } else {
+                        listEl.innerHTML = '<table class="products-table"><thead><tr><th>Nombre</th><th>Slug</th><th>Acciones</th></tr></thead><tbody>' +
+                            categories.map(c => '<tr><td>' + (c.nombre || '—').replace(/</g, '&lt;') + '</td><td><code>' + (c.slug || '—').replace(/</g, '&lt;') + '</code></td><td><button type="button" class="btn btn-danger btn-sm delete-cat-btn" data-id="' + c.id + '"><i class="fas fa-trash"></i> Quitar</button></td></tr>').join('') +
+                            '</tbody></table>';
+                    }
+                }
+            } catch (err) {
+                console.error('Load categories:', err);
+                categories = [];
+                if (sel) sel.innerHTML = '<option value="">Error al cargar</option>';
+                if (listEl) listEl.innerHTML = '<div class="empty-state"><p>No se pudieron cargar las categorías.</p><button type="button" class="btn" onclick="loadCategories()">Reintentar</button></div>';
+            }
+        }
+
+        document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('categorySubmitBtn');
+            const nombre = document.getElementById('catNombre').value.trim();
+            const slug = document.getElementById('catSlug').value.trim();
+            if (!nombre) { alert('Escribe el nombre de la categoría.'); return; }
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            try {
+                const res = await fetch('/api/admin/categories', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ nombre, slug: slug || undefined })
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error');
+                document.getElementById('categoryForm').reset();
+                loadCategories();
+            } catch (err) {
+                alert(err.message || 'Error al agregar');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus"></i> Agregar categoría';
+            }
+        });
+
+        async function deleteCategory(id) {
+            if (!confirm('¿Eliminar esta categoría?')) return;
+            try {
+                const res = await fetch('/api/admin/categories?id=' + encodeURIComponent(id), { method: 'DELETE', headers: getAuthHeaders() });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error');
+                loadCategories();
+            } catch (err) {
+                alert(err.message || 'Error al eliminar');
+            }
+        }
+
+        document.getElementById('categoriesList').addEventListener('click', (e) => {
+            const btn = e.target.closest('.delete-cat-btn');
+            if (btn) { e.preventDefault(); deleteCategory(btn.getAttribute('data-id')); }
+        });
+
         async function loadProducts() {
             const container = document.getElementById('productsList');
             const countEl = document.getElementById('productsCount');
@@ -989,9 +1092,10 @@ ${products.map(p => {
             else if (delBtn) { e.preventDefault(); deleteCollection(delBtn.getAttribute('data-id')); }
         });
 
-        // Init: enlazar botón Reintentar del HTML inicial y cargar productos (sin reintento automático para evitar bucle)
+        // Init: cargar categorías primero (rellena el select de productos), luego productos y colección
         var initialRetry = document.getElementById('retryLoadBtn');
         if (initialRetry) initialRetry.addEventListener('click', loadProducts);
+        loadCategories();
         loadProducts();
         loadCollection();
     </script>
