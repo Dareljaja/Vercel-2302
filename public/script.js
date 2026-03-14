@@ -218,4 +218,49 @@ function initEventListeners() {
         cartOverlay?.classList.remove('active');
         window.location.href = 'checkout.html';
     });
+
+    // Formulario CONECTA (contacto) — envía correo vía /api/contact
+    const contactForm = document.getElementById('contactForm');
+    const formSuccess = document.getElementById('formSuccess');
+    const formError = document.getElementById('formError');
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (formSuccess) formSuccess.classList.remove('show');
+            if (formError) { formError.textContent = ''; formError.className = 'form-error'; }
+            const name = (document.getElementById('name') || {}).value?.trim();
+            const email = (document.getElementById('email') || {}).value?.trim();
+            const message = (document.getElementById('message') || {}).value?.trim();
+            if (!name || !email || !message) {
+                if (formError) { formError.textContent = 'Completa todos los campos.'; formError.classList.add('show'); }
+                return;
+            }
+            const btn = contactForm.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.querySelector('span').textContent = 'ENVIANDO...'; }
+            try {
+                const res = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, message })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    contactForm.reset();
+                    if (formSuccess) formSuccess.classList.add('show');
+                } else {
+                    if (formError) {
+                        formError.textContent = data.message || 'Error al enviar. Intenta de nuevo.';
+                        formError.classList.add('show');
+                    }
+                }
+            } catch (err) {
+                if (formError) {
+                    formError.textContent = 'Error de conexión. Intenta de nuevo.';
+                    formError.classList.add('show');
+                }
+            } finally {
+                if (btn) { btn.disabled = false; btn.querySelector('span').textContent = 'ENVIAR'; }
+            }
+        });
+    }
 }
