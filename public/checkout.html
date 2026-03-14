@@ -143,12 +143,6 @@
                         <label for="comentarios">Comentarios del pedido</label>
                         <textarea id="comentarios" name="comentarios" placeholder="Horario preferido, instrucciones, etc."></textarea>
                     </div>
-                    <div class="form-group">
-                        <label for="wspLink">Link de WhatsApp donde enviar el pedido *</label>
-                        <input type="url" id="wspLink" name="wspLink" required placeholder="https://wa.me/54911..." value="${WHATSAPP_LINK}">
-                        <span class="form-error" id="err-wspLink"></span>
-                        <span class="hint">Pegá el link de WhatsApp (ej: wa.me/número o link de mensaje directo)</span>
-                    </div>
                     <div class="checkout-actions">
                         <button type="submit" class="btn btn-whatsapp" id="btnEnviar">
                             <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
@@ -184,11 +178,6 @@
                 if (!telefono) { document.getElementById('err-telefono').textContent = 'Ingresá tu teléfono.'; valid = false; }
                 if (!direccion) { document.getElementById('err-direccion').textContent = 'Ingresá la dirección.'; valid = false; }
                 if (!localidad) { document.getElementById('err-localidad').textContent = 'Ingresá localidad/ciudad.'; valid = false; }
-                const wspLinkInput = (document.getElementById('wspLink').value || '').trim();
-                if (!wspLinkInput) {
-                    document.getElementById('err-wspLink').textContent = 'Ingresá el link de WhatsApp.';
-                    valid = false;
-                }
                 if (!valid) return;
 
                 // Releer el carrito al enviar para usar siempre el estado actual
@@ -223,8 +212,8 @@
                     'TOTAL: $' + totalActual.toLocaleString()
                 ].filter(Boolean).join('\n');
 
-                // Usar el link que ingresó el usuario; agregar el mensaje como parámetro
-                let urlBase = wspLinkInput.replace(/#.*$/, '');
+                // Abrir WhatsApp (en el celular o web) con el mensaje ya escrito para enviar a la tienda
+                const urlBase = WHATSAPP_LINK.replace(/#.*$/, '');
                 const sep = urlBase.indexOf('?') >= 0 ? '&' : '?';
                 const url = urlBase + sep + 'text=' + encodeURIComponent(msg);
                 window.open(url, '_blank', 'noopener');
