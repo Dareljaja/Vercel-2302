@@ -7,68 +7,204 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .product-input {
-            width: 100%;
-            padding: 14px 16px;
-            background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
-            border: 1px solid rgba(201, 169, 98, 0.2);
-            color: #fff;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        .product-input:focus {
-            outline: none;
-            border-color: rgba(201, 169, 98, 0.5);
-            box-shadow: 0 0 0 3px rgba(201, 169, 98, 0.1), 0 4px 12px rgba(0, 0, 0, 0.4);
-        }
-        .product-textarea {
-            width: 100%;
-            padding: 14px 16px;
-            background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
-            border: 1px solid rgba(201, 169, 98, 0.2);
-            color: #e0e0e0;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            line-height: 1.7;
-            font-family: inherit;
-            resize: vertical;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        .product-textarea:focus {
-            outline: none;
-            border-color: rgba(201, 169, 98, 0.5);
-            box-shadow: 0 0 0 3px rgba(201, 169, 98, 0.1), 0 4px 12px rgba(0, 0, 0, 0.4);
-        }
-        .product-label {
+        * { box-sizing: border-box; }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(201, 169, 98, 0.1);
+            border: 1px solid rgba(201, 169, 98, 0.3);
+            border-radius: 20px;
             color: #c9a962;
             font-size: 0.75rem;
-            letter-spacing: 1.5px;
-            margin-bottom: 10px;
-            display: block;
+            letter-spacing: 0.5px;
+            margin: 4px 6px 4px 0;
             font-weight: 500;
-            text-transform: uppercase;
         }
-        .input-category {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #c9a962;
-            font-weight: 600;
+        
+        .price-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(201, 169, 98, 0.05) 0%, rgba(201, 169, 98, 0.02) 100%);
+            border: 1px solid rgba(201, 169, 98, 0.2);
+            border-radius: 8px;
         }
-        .input-name {
-            font-size: 1.9rem;
-            font-family: 'Playfair Display', serif;
-            color: #fff;
-            font-weight: 400;
-        }
-        .input-price {
-            font-size: 1.6rem;
+        
+        .price-main {
+            font-size: 2rem;
             color: #c9a962;
             font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .price-original {
+            font-size: 1rem;
+            color: #666;
+            text-decoration: line-through;
+            margin-right: 10px;
+        }
+        
+        .discount-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #dc3545;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        
+        .features-list li {
+            padding: 12px 0;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(201, 169, 98, 0.1);
+        }
+        
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .features-list li i {
+            color: #c9a962;
+            margin-right: 12px;
+            font-size: 1rem;
+        }
+        
+        .features-list li span {
+            color: #e0e0e0;
+            font-size: 0.95rem;
+        }
+        
+        .collapsible-section {
+            margin: 20px 0;
+            border: 1px solid rgba(201, 169, 98, 0.2);
+            border-radius: 8px;
+            background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
+            overflow: hidden;
+        }
+        
+        .collapsible-header {
+            padding: 16px 20px;
+            background: rgba(201, 169, 98, 0.05);
+            border-bottom: 1px solid rgba(201, 169, 98, 0.2);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+        
+        .collapsible-header:hover {
+            background: rgba(201, 169, 98, 0.1);
+        }
+        
+        .collapsible-header h3 {
+            margin: 0;
+            color: #c9a962;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .collapsible-icon {
+            color: #c9a962;
+            transition: transform 0.3s ease;
+        }
+        
+        .collapsible-section.active .collapsible-icon {
+            transform: rotate(180deg);
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .collapsible-section.active .collapsible-content {
+            max-height: 1000px;
+        }
+        
+        .collapsible-body {
+            padding: 20px;
+            color: #e0e0e0;
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+        
+        .collapsible-body ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .collapsible-body li {
+            margin: 8px 0;
+            color: #d0d0d0;
+        }
+        
+        .product-title {
+            font-size: 1.8rem;
+            font-family: 'Playfair Display', serif;
+            color: #fff;
+            margin: 15px 0 10px 0;
+            line-height: 1.3;
+        }
+        
+        .product-subtitle {
+            color: #999;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 18px;
+            background: #c9a962;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .add-to-cart-btn:hover {
+            background: #d4af37;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 169, 98, 0.3);
+        }
+        
+        .shipping-info {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(201, 169, 98, 0.05);
+            border: 1px solid rgba(201, 169, 98, 0.2);
+            border-radius: 8px;
+            color: #c9a962;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .shipping-info i {
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -82,52 +218,103 @@
     
     <main id="product-container" style="max-width: 1100px; margin: 50px auto; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 50px;">
         <div class="product-image-side">
-            <img id="p-image" src="" alt="" style="width: 100%; border: 1px solid #1a1a1a; border-radius: 4px; display: none;">
-            <div id="loading-img" style="aspect-ratio: 1/1; background: #1a1a1a; display: flex; align-items: center; justify-content: center;">Cargando imagen...</div>
+            <img id="p-image" src="" alt="" style="width: 100%; border: 1px solid rgba(201, 169, 98, 0.2); border-radius: 8px; display: none;">
+            <div id="loading-img" style="aspect-ratio: 1/1; background: #1a1a1a; display: flex; align-items: center; justify-content: center; border-radius: 8px;">Cargando imagen...</div>
         </div>
 
         <div class="product-info-side">
-            <label class="product-label">CATEGORÍA</label>
-            <input type="text" id="p-category" readonly class="product-input input-category" style="margin-bottom: 20px;">
+            <!-- Badges -->
+            <div id="badges-container" style="margin-bottom: 15px;"></div>
             
-            <label class="product-label">NOMBRE DEL PRODUCTO</label>
-            <input type="text" id="p-name" readonly class="product-input input-name" style="margin-bottom: 20px;">
+            <!-- Título y subtítulo -->
+            <h1 id="p-name" class="product-title"></h1>
+            <div id="p-subtitle" class="product-subtitle"></div>
             
-            <label class="product-label">PRECIO</label>
-            <input type="text" id="p-price" readonly class="product-input input-price" style="margin-bottom: 30px;">
-            
-            <div style="border-top: 1px solid rgba(201, 169, 98, 0.15); padding-top: 30px;">
-                <label class="product-label">DESCRIPCIÓN</label>
-                <textarea id="p-desc" readonly rows="6" class="product-textarea" style="margin-bottom: 25px;"></textarea>
-                
-                <div id="p-short-desc" style="display: none; margin-bottom: 25px;">
-                    <label class="product-label">DESCRIPCIÓN CORTA</label>
-                    <textarea readonly rows="3" class="product-textarea"></textarea>
-                </div>
-                
-                <div id="p-size" style="display: none; margin-bottom: 25px;">
-                    <label class="product-label">TAMAÑO</label>
-                    <input type="text" readonly class="product-input">
-                </div>
-                
-                <div id="p-ingredients" style="display: none; margin-bottom: 25px;">
-                    <label class="product-label">INGREDIENTES</label>
-                    <textarea readonly rows="4" class="product-textarea"></textarea>
-                </div>
-                
-                <div id="p-how-to-use" style="display: none; margin-bottom: 25px;">
-                    <label class="product-label">MODO DE USO</label>
-                    <textarea readonly rows="4" class="product-textarea"></textarea>
+            <!-- Precio -->
+            <div class="price-section">
+                <div>
+                    <span id="price-original" class="price-original" style="display: none;"></span>
+                    <span id="p-price" class="price-main"></span>
+                    <span id="discount-badge" class="discount-badge" style="display: none;"></span>
                 </div>
             </div>
-
-            <button id="add-btn" class="product-btn" style="width: 100%; padding: 18px; cursor: pointer; background: #c9a962; color: #000; border: none; font-weight: bold; letter-spacing: 1px;">
+            
+            <!-- Características destacadas -->
+            <ul id="features-list" class="features-list" style="display: none;"></ul>
+            
+            <!-- Botón agregar al carrito -->
+            <button id="add-btn" class="add-to-cart-btn">
+                <i class="fas fa-shopping-bag"></i>
                 AGREGAR AL CARRITO
             </button>
+            
+            <!-- Info de envío -->
+            <div class="shipping-info">
+                <i class="fas fa-truck"></i>
+                <span>Envío gratis a partir de $80.000</span>
+            </div>
+            
+            <!-- Secciones colapsables -->
+            <div class="collapsible-section active">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h3>Descripción</h3>
+                    <i class="fas fa-chevron-up collapsible-icon"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="collapsible-body" id="p-desc"></div>
+                </div>
+            </div>
+            
+            <div id="p-short-desc-section" class="collapsible-section" style="display: none;">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h3>Descripción Corta</h3>
+                    <i class="fas fa-chevron-up collapsible-icon"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="collapsible-body" id="p-short-desc"></div>
+                </div>
+            </div>
+            
+            <div id="p-size-section" class="collapsible-section" style="display: none;">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h3>Tamaño</h3>
+                    <i class="fas fa-chevron-up collapsible-icon"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="collapsible-body" id="p-size"></div>
+                </div>
+            </div>
+            
+            <div id="p-ingredients-section" class="collapsible-section" style="display: none;">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h3>Ingredientes</h3>
+                    <i class="fas fa-chevron-up collapsible-icon"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="collapsible-body" id="p-ingredients"></div>
+                </div>
+            </div>
+            
+            <div id="p-how-to-use-section" class="collapsible-section" style="display: none;">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    <h3>Modo de Uso</h3>
+                    <i class="fas fa-chevron-up collapsible-icon"></i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="collapsible-body" id="p-how-to-use"></div>
+                </div>
+            </div>
         </div>
     </main>
 
     <script>
+        function toggleSection(header) {
+            const section = header.closest('.collapsible-section');
+            section.classList.toggle('active');
+        }
+        
+        window.toggleSection = toggleSection;
+
         document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
             const productId = params.get('id');
@@ -144,57 +331,96 @@
                 const product = products.find(p => p.id == productId);
 
                 if (product) {
-                    // Categoría
+                    // Badges
+                    const badgesContainer = document.getElementById('badges-container');
                     const categoryMap = {
                         'face': 'ROSTRO',
                         'body': 'CUERPO',
                         'hair': 'CABELLO'
                     };
                     const category = product.categoria || product.category || '';
-                    document.getElementById('p-category').value = categoryMap[category.toLowerCase()] || category.toUpperCase() || 'CUIDADO PREMIUM';
+                    const categoryText = categoryMap[category.toLowerCase()] || category.toUpperCase() || 'CUIDADO PREMIUM';
+                    
+                    badgesContainer.innerHTML = `<span class="badge">${categoryText}</span>`;
+                    
+                    if (product.popular) {
+                        badgesContainer.innerHTML += '<span class="badge"><i class="fas fa-star"></i> Popular</span>';
+                    }
+                    if (product.offer) {
+                        badgesContainer.innerHTML += '<span class="badge"><i class="fas fa-tag"></i> Oferta</span>';
+                    }
                     
                     // Nombre del producto
-                    document.getElementById('p-name').value = product.nombre || product.name || 'Producto';
+                    document.getElementById('p-name').textContent = product.nombre || product.name || 'Producto';
+                    
+                    // Subtítulo (código o descripción corta)
+                    const subtitle = product.shortDescription || product['descripcion corta'] || '';
+                    if (subtitle) {
+                        document.getElementById('p-subtitle').textContent = subtitle;
+                    } else {
+                        document.getElementById('p-subtitle').style.display = 'none';
+                    }
                     
                     // Precio
-                    document.getElementById('p-price').value = `$${Number(product.precio || product.price || 0).toLocaleString()}`;
+                    const price = Number(product.precio || product.price || 0);
+                    document.getElementById('p-price').textContent = `$${price.toLocaleString()}`;
                     
-                    // Descripción completa (priorizar description que es el mapeo correcto)
+                    // Características destacadas
+                    const featuresList = document.getElementById('features-list');
+                    const features = [];
+                    
+                    if (product.popular) {
+                        features.push('<li><i class="fas fa-check-circle"></i><span>Producto destacado</span></li>');
+                    }
+                    if (product.offer) {
+                        features.push('<li><i class="fas fa-check-circle"></i><span>En oferta especial</span></li>');
+                    }
+                    if (product.size || product.tamaño) {
+                        features.push(`<li><i class="fas fa-check-circle"></i><span>Tamaño: ${product.size || product.tamaño}</span></li>`);
+                    }
+                    if (product.category || product.categoria) {
+                        const catText = categoryMap[(product.category || product.categoria).toLowerCase()] || (product.category || product.categoria).toUpperCase();
+                        features.push(`<li><i class="fas fa-check-circle"></i><span>Para ${catText.toLowerCase()}</span></li>`);
+                    }
+                    
+                    if (features.length > 0) {
+                        featuresList.innerHTML = features.join('');
+                        featuresList.style.display = 'block';
+                    }
+                    
+                    // Descripción completa
                     const fullDesc = product.description || product.descripcion || 'Sin descripción disponible.';
-                    document.getElementById('p-desc').value = fullDesc;
+                    document.getElementById('p-desc').textContent = fullDesc;
                     
                     // Descripción corta
                     const shortDesc = product.shortDescription || product['descripcion corta'];
                     if (shortDesc && shortDesc.trim()) {
-                        const shortDescEl = document.getElementById('p-short-desc');
-                        shortDescEl.style.display = 'block';
-                        shortDescEl.querySelector('textarea').value = shortDesc;
+                        document.getElementById('p-short-desc-section').style.display = 'block';
+                        document.getElementById('p-short-desc').textContent = shortDesc;
                     }
                     
                     // Tamaño
                     const size = product.size || product.tamaño;
                     if (size && size.trim()) {
-                        const sizeEl = document.getElementById('p-size');
-                        sizeEl.style.display = 'block';
-                        sizeEl.querySelector('input').value = size;
+                        document.getElementById('p-size-section').style.display = 'block';
+                        document.getElementById('p-size').textContent = size;
                     }
                     
                     // Ingredientes
                     const ingredients = product.ingredients || product.ingredientes;
                     if (ingredients && ingredients.trim()) {
-                        const ingredientsEl = document.getElementById('p-ingredients');
-                        ingredientsEl.style.display = 'block';
-                        ingredientsEl.querySelector('textarea').value = ingredients;
+                        document.getElementById('p-ingredients-section').style.display = 'block';
+                        document.getElementById('p-ingredients').textContent = ingredients;
                     }
                     
                     // Modo de uso
                     const howToUse = product.howToUse || product['modo de uso'];
                     if (howToUse && howToUse.trim()) {
-                        const howToUseEl = document.getElementById('p-how-to-use');
-                        howToUseEl.style.display = 'block';
-                        howToUseEl.querySelector('textarea').value = howToUse;
+                        document.getElementById('p-how-to-use-section').style.display = 'block';
+                        document.getElementById('p-how-to-use').textContent = howToUse;
                     }
                     
+                    // Imagen
                     const img = document.getElementById('p-image');
                     const imageUrl = product.imagen_url || product.image || '';
                     img.src = imageUrl || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%231a1a1a" width="200" height="200"/%3E%3Ctext fill="%23666" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="14"%3ESin imagen%3C/text%3E%3C/svg%3E';
@@ -205,8 +431,6 @@
 
                     // Configurar botón de carrito
                     document.getElementById('add-btn').onclick = () => {
-                        // Reutilizamos la lógica de tu script.js si está cargado, 
-                        // o simplemente avisamos que se agregó.
                         alert('Producto agregado al carrito');
                     };
                 } else {
