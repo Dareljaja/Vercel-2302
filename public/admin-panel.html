@@ -111,6 +111,9 @@
             border-color: #d4af37;
         }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-section-label { color: #d4af37; font-size: 0.95em; margin-bottom: 4px; }
+        .form-hint { font-size: 0.8em; opacity: 0.7; margin: 4px 0 8px; }
+        .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px 20px; margin-top: 8px; }
         .checkbox-group { display: flex; align-items: center; gap: 10px; }
         .upload-area {
             border: 2px dashed #d4af37;
@@ -261,15 +264,43 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Destacar</label>
+                        <label class="form-section-label">Checks bajo el precio (ficha del producto)</label>
+                        <p class="form-hint">Estos valores se muestran como líneas con ✓ debajo del precio.</p>
                         <div class="form-row">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="popular">
-                                <label for="popular">Popular</label>
+                                <label for="popular">Producto destacado</label>
                             </div>
                             <div class="checkbox-group">
                                 <input type="checkbox" id="offer">
-                                <label for="offer">Oferta</label>
+                                <label for="offer">En oferta especial</label>
+                            </div>
+                        </div>
+                        <p class="form-hint" style="margin-top: 8px;">Categoría y Tamaño (arriba) también generan un check.</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-section-label">Mostrar secciones desplegables en la ficha</label>
+                        <p class="form-hint">Activa o desactiva cada cuadro que se abre debajo (Descripción, Tamaño, etc.).</p>
+                        <div class="check-grid">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showDescription" checked>
+                                <label for="showDescription">Descripción</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showShortDescription" checked>
+                                <label for="showShortDescription">Descripción corta</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showSize" checked>
+                                <label for="showSize">Tamaño</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showIngredients" checked>
+                                <label for="showIngredients">Ingredientes</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showHowToUse" checked>
+                                <label for="showHowToUse">Modo de uso</label>
                             </div>
                         </div>
                     </div>
@@ -490,7 +521,12 @@ ${products.map(p => {
                     howToUse: document.getElementById('howToUse').value,
                     image_url: imageUrlInput || uploadUrl || '',
                     popular: document.getElementById('popular').checked,
-                    offer: document.getElementById('offer').checked
+                    offer: document.getElementById('offer').checked,
+                    showDescription: document.getElementById('showDescription').checked,
+                    showShortDescription: document.getElementById('showShortDescription').checked,
+                    showSize: document.getElementById('showSize').checked,
+                    showIngredients: document.getElementById('showIngredients').checked,
+                    showHowToUse: document.getElementById('showHowToUse').checked
                 };
 
                 const res = await fetch('/api/admin/products', {
@@ -621,7 +657,12 @@ ${products.map(p => {
             document.getElementById('howToUse').value = product.howToUse;
             document.getElementById('popular').checked = product.popular || false;
             document.getElementById('offer').checked = product.offer || false;
-            
+            document.getElementById('showDescription').checked = product.showDescription !== false;
+            document.getElementById('showShortDescription').checked = product.showShortDescription !== false;
+            document.getElementById('showSize').checked = product.showSize !== false;
+            document.getElementById('showIngredients').checked = product.showIngredients !== false;
+            document.getElementById('showHowToUse').checked = product.showHowToUse !== false;
+
             const imageUrl = product.image_url || product.imagen_url || '';
             document.getElementById('imageUrlInput').value = imageUrl;
             uploadUrl = imageUrl;

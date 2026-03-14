@@ -318,8 +318,8 @@
                 AGREGAR AL CARRITO
             </button>
             
-            <!-- Secciones colapsables -->
-            <div class="collapsible-section active">
+            <!-- Secciones colapsables (visibilidad controlada desde el admin) -->
+            <div id="p-desc-section" class="collapsible-section active">
                 <div class="collapsible-header" onclick="toggleSection(this)">
                     <h3>Descripción</h3>
                     <i class="fas fa-chevron-up collapsible-icon"></i>
@@ -463,36 +463,39 @@
                         featuresList.style.display = 'block';
                     }
                     
-                    // Descripción completa
+                    // Descripción completa (visible si showDescription !== false)
                     const fullDesc = product.description || product.descripcion || 'Sin descripción disponible.';
                     document.getElementById('p-desc').textContent = fullDesc;
-                    
-                    // Descripción corta
+                    const descSection = document.getElementById('p-desc-section');
+                    if (descSection) descSection.style.display = product.showDescription === false ? 'none' : 'block';
+
+                    // Secciones desplegables: mostrar solo si el admin las activó (show* !== false)
                     const shortDesc = product.shortDescription || product['descripcion corta'];
-                    if (shortDesc && shortDesc.trim()) {
-                        document.getElementById('p-short-desc-section').style.display = 'block';
-                        document.getElementById('p-short-desc').textContent = shortDesc;
+                    const shortDescSection = document.getElementById('p-short-desc-section');
+                    if (shortDescSection) {
+                        shortDescSection.style.display = product.showShortDescription === false ? 'none' : 'block';
+                        document.getElementById('p-short-desc').textContent = (shortDesc && shortDesc.trim()) ? shortDesc : '—';
                     }
-                    
-                    // Tamaño
+
                     const size = product.size || product.tamaño;
-                    if (size && size.trim()) {
-                        document.getElementById('p-size-section').style.display = 'block';
-                        document.getElementById('p-size').textContent = size;
+                    const sizeSection = document.getElementById('p-size-section');
+                    if (sizeSection) {
+                        sizeSection.style.display = product.showSize === false ? 'none' : 'block';
+                        document.getElementById('p-size').textContent = (size && size.trim()) ? size : '—';
                     }
-                    
-                    // Ingredientes
+
                     const ingredients = product.ingredients || product.ingredientes;
-                    if (ingredients && ingredients.trim()) {
-                        document.getElementById('p-ingredients-section').style.display = 'block';
-                        document.getElementById('p-ingredients').textContent = ingredients;
+                    const ingredientsSection = document.getElementById('p-ingredients-section');
+                    if (ingredientsSection) {
+                        ingredientsSection.style.display = product.showIngredients === false ? 'none' : 'block';
+                        document.getElementById('p-ingredients').textContent = (ingredients && ingredients.trim()) ? ingredients : '—';
                     }
-                    
-                    // Modo de uso
+
                     const howToUse = product.howToUse || product['modo de uso'];
-                    if (howToUse && howToUse.trim()) {
-                        document.getElementById('p-how-to-use-section').style.display = 'block';
-                        document.getElementById('p-how-to-use').textContent = howToUse;
+                    const howToUseSection = document.getElementById('p-how-to-use-section');
+                    if (howToUseSection) {
+                        howToUseSection.style.display = product.showHowToUse === false ? 'none' : 'block';
+                        document.getElementById('p-how-to-use').textContent = (howToUse && howToUse.trim()) ? howToUse : '—';
                     }
                     
                     // Imagen
