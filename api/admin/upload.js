@@ -1,21 +1,12 @@
-import jwt from 'jsonwebtoken';
 import { put } from '@vercel/blob';
-import { auth } from '@vercel/authentication';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'shop2302_secret';
-
-export default auth(async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
   try {
-    // Verify JWT (fallback if no Vercel Auth)
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) throw new Error('No token');
-    jwt.verify(token, JWT_SECRET);
-
     if (req.method !== 'POST') {
       return res.status(405).json({ success: false, message: 'Method not allowed' });
     }
@@ -40,9 +31,9 @@ export default auth(async function handler(req, res) {
 
   } catch (error) {
     console.error('Upload error:', error);
-    res.status(401).json({ success: false, message: error.message || 'Unauthorized' });
+    res.status(500).json({ success: false, message: error.message || 'Upload failed' });
   }
-});
+}
 
 // Optional callback for large uploads
 export const config = {

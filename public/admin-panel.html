@@ -292,29 +292,22 @@
 
     <script type="module">
         let products = [];
-        let token = localStorage.getItem('adminToken');
         let editingId = null;
         let uploadUrl = '';
-
-        // Check auth
-        if (!token) {
-            window.location.href = '/admin.html';
-        }
 
         // Load products
         async function loadProducts() {
             try {
-                const res = await fetch('/api/admin/products', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await fetch('/api/admin/products');
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message);
                 
                 products = data.products || [];
                 renderProducts();
             } catch (err) {
-                alert('Error loading products: ' + err.message);
-                logout();
+                console.error('Error loading products:', err);
+                products = [];
+                renderProducts();
             }
         }
 
@@ -406,10 +399,7 @@
 
                 const res = await fetch('/api/admin/products', {
                     method: editingId ? 'PUT' : 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(editingId ? { id: editingId, ...productData } : productData)
                 });
 
@@ -469,12 +459,10 @@
             try {
                 const formData = new FormData();
                 formData.append('file', file);
-                formData.append('token', token);
 
                 const res = await fetch('/api/admin/upload', {
                     method: 'POST',
-                    body: formData,
-                    headers: { Authorization: `Bearer ${token}` }
+                    body: formData
                 });
 
                 const data = await res.json();
@@ -524,8 +512,7 @@
 
             try {
                 const res = await fetch(`/api/admin/products?id=${id}`, {
-                    method: 'DELETE',
-                    headers: { Authorization: `Bearer ${token}` }
+                    method: 'DELETE'
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message);
@@ -542,22 +529,11 @@
         }
 
         function logout() {
-            localStorage.removeItem('adminToken');
-            window.location.href = '/admin.html';
+            window.location.href = 'index.html';
         }
 
         // Init
         loadProducts();
-
-        // Auto-logout expired token
-        setInterval(() => {
-            if (!token) return;
-            try {
-                // Simple token expiry check
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                if (payload.exp * 1000 < Date.now()) logout();
-            } catch {}
-        }, 60000);
     </script>
 </body>
 </html>

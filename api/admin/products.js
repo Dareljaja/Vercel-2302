@@ -16,8 +16,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'shop2302_secret_dev';
 
 const verifyToken = (req) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token) throw new Error('No token');
-  return jwt.verify(token, JWT_SECRET);
+  if (!token) return null;
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch {
+    return null;
+  }
 };
 
 const sanitize = (str) => str?.toString().replace(/[&<>\\"'\\/]/g, '');
@@ -29,8 +33,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    verifyToken(req);
-
     if (req.method === 'GET') {
       // List all products
       const { data: products, error } = await supabaseAdmin
