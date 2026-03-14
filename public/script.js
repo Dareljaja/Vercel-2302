@@ -87,7 +87,7 @@ function renderCollection() {
 
 // Lógica de Carrito básica para que no de error
 window.addToCart = function(productId) {
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => p.id == productId);
     if (!product) return;
     const existing = cart.find(item => item.id === productId);
     if (existing) { existing.quantity += 1; } 
@@ -96,10 +96,82 @@ window.addToCart = function(productId) {
     updateCartUI();
 }
 
+function getItemPrice(item) {
+    return Number(item.price ?? item.precio ?? 0);
+}
+function getItemName(item) {
+    return item.name ?? item.nombre ?? 'Producto';
+}
+function getItemImage(item) {
+    return item.imagen_url ?? item.image ?? PLACEHOLDER_IMG;
+}
+
+function renderCartItems() {
+    if (!cartItemsContainer) return;
+    const total = cart.reduce((sum, i) => sum + getItemPrice(i) * i.quantity, 0);
+    if (cart.length === 0) {
+        cartItemsContainer.innerHTML = `
+            <div class="cart-empty" id="cartEmpty">
+                <i class="fas fa-shopping-bag"></i>
+                <p>TU CARRITO ESTÁ VACÍO</p>
+                <span>Agrega productos</span>
+            </div>`;
+        if (cartEmpty) cartEmpty.style.display = '';
+        if (cartFooter) cartFooter.style.display = 'none';
+        return;
+    }
+    const itemsHtml = cart.map((item) => {
+        const price = getItemPrice(item);
+        const name = getItemName(item);
+        const img = getItemImage(item);
+        const subtotal = price * item.quantity;
+        return `
+            <div class="cart-item" data-id="${item.id}">
+                <div class="cart-item-image">
+                    <img src="${img}" alt="${String(name).replace(/"/g, '&quot;')}" onerror="this.src=window.PLACEHOLDER_IMG||this.src">
+                </div>
+                <div class="cart-item-details">
+                    <span class="cart-item-name">${String(name).replace(/</g, '&lt;')}</span>
+                    <span class="cart-item-price">$${subtotal.toLocaleString()}</span>
+                    <div class="cart-item-actions">
+                        <div class="cart-quantity">
+                            <button type="button" class="cart-quantity-btn" aria-label="Menos" onclick="window.cartQuantity(${JSON.stringify(item.id)}, -1)">−</button>
+                            <span>${item.quantity}</span>
+                            <button type="button" class="cart-quantity-btn" aria-label="Más" onclick="window.cartQuantity(${JSON.stringify(item.id)}, 1)">+</button>
+                        </div>
+                        <button type="button" class="cart-item-remove" aria-label="Quitar" onclick="window.removeFromCart(${JSON.stringify(item.id)})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+    cartItemsContainer.innerHTML = itemsHtml;
+    const emptyEl = document.getElementById('cartEmpty');
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (cartFooter) cartFooter.style.display = 'block';
+}
+
+window.cartQuantity = function(productId, delta) {
+    const item = cart.find(i => i.id === productId);
+    if (!item) return;
+    item.quantity += delta;
+    if (item.quantity < 1) {
+        cart = cart.filter(i => i.id !== productId);
+    }
+    saveCartToStorage();
+    updateCartUI();
+};
+
+window.removeFromCart = function(productId) {
+    cart = cart.filter(i => i.id !== productId);
+    saveCartToStorage();
+    updateCartUI();
+};
+
 function updateCartUI() {
-    if (!cartCount) return;
-    cartCount.textContent = cart.reduce((sum, i) => sum + i.quantity, 0);
-    if (cartTotal) cartTotal.textContent = `$${cart.reduce((sum, i) => sum + (Number(i.price) || 0) * i.quantity, 0)}`;
+    if (cartCount) cartCount.textContent = cart.reduce((sum, i) => sum + i.quantity, 0);
+    const total = cart.reduce((sum, i) => sum + getItemPrice(i) * i.quantity, 0);
+    if (cartTotal) cartTotal.textContent = `$${total.toLocaleString()}`;
+    renderCartItems();
 }
 
 function saveCartToStorage() { localStorage.setItem('2302_cart', JSON.stringify(cart)); }
