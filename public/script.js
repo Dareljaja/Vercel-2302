@@ -112,8 +112,8 @@ function renderCollection(items) {
                 href = 'index.html?category=' + encodeURIComponent(href) + (tituloRaw ? '&title=' + encodeURIComponent(tituloRaw) : '');
             }
         }
-        const safeHref = (href || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        const clickAttr = href ? `onclick="window.open('${safeHref}', '_blank')"` : '';
+        const safeHref = (href || '').replace(/'/g, "\\'");
+        const clickAttr = href ? `onclick="window.location.href='${safeHref}'"` : '';
         return `
         <article class="collection-item" ${clickAttr} style="cursor:${href ? 'pointer' : 'default'}">
             <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${titulo}" loading="lazy" crossorigin="anonymous" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;">
