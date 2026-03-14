@@ -22,6 +22,12 @@ const cartTotal = document.getElementById('cartTotal');
 const cartFooter = document.getElementById('cartFooter');
 const cartEmpty = document.getElementById('cartEmpty');
 
+(function () {
+    var p = new URLSearchParams(window.location.search);
+    var t = p.get('title');
+    if (t) try { document.title = decodeURIComponent(t) + ' | 2302'; } catch (e) {}
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     loadProducts().then(() => {
         loadCartFromStorage();
@@ -54,6 +60,12 @@ async function loadProducts() {
         loadCollection();
         var params = new URLSearchParams(window.location.search);
         var categoryParam = params.get('category');
+        var titleParam = params.get('title');
+        if (titleParam) {
+            try {
+                document.title = decodeURIComponent(titleParam) + ' | 2302';
+            } catch (e) {}
+        }
         if (categoryParam && catSelect) {
             catSelect.value = categoryParam;
             applyProductsFilter();
@@ -88,6 +100,7 @@ function renderCollection(items) {
     collectionGrid.innerHTML = items.map((c) => {
         const imgUrl = c.imagen_url || '';
         const titulo = (c.titulo || '').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        const tituloRaw = (c.titulo || '').trim();
         const desc = (c.descripcion || '').replace(/</g, '&lt;').replace(/"/g, '&quot;');
         let href = (c.link || '').trim();
         if (href && !/^https?:\/\//i.test(href) && !href.startsWith('/') && !href.startsWith('#')) {
@@ -96,10 +109,11 @@ function renderCollection(items) {
             } else if (href.includes('.html')) {
                 href = href;
             } else {
-                href = 'index.html?category=' + encodeURIComponent(href);
+                href = 'index.html?category=' + encodeURIComponent(href) + (tituloRaw ? '&title=' + encodeURIComponent(tituloRaw) : '');
             }
         }
-        const clickAttr = href ? `onclick="window.location.href='${href.replace(/'/g, "\\'")}'"` : '';
+        const safeHref = (href || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const clickAttr = href ? `onclick="window.open('${safeHref}', '_blank')"` : '';
         return `
         <article class="collection-item" ${clickAttr} style="cursor:${href ? 'pointer' : 'default'}">
             <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${titulo}" loading="lazy" crossorigin="anonymous" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;">
