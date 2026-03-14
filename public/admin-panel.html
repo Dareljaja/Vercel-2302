@@ -326,9 +326,59 @@
                 </div>
             </div>
         </div>
+
+        <!-- Colección (tarjetas de la sección Colección en la home) -->
+        <div class="form-container" style="margin-top: 40px;">
+            <h2 class="section-title"><i class="fas fa-images"></i> Colección (tarjetas de la home)</h2>
+            <p class="form-hint" style="margin-bottom: 20px;">Estas tarjetas se muestran en la sección "Colección" de la página principal. Orden: número menor = aparece primero.</p>
+            <form id="collectionForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Título *</label>
+                        <input type="text" id="collTitulo" required placeholder="Ej: Serum Vitamina C">
+                    </div>
+                    <div class="form-group">
+                        <label>Orden (número)</label>
+                        <input type="number" id="collOrden" value="0" min="0" placeholder="0">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>URL de imagen *</label>
+                        <input type="text" id="collImagenUrl" placeholder="https://...">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Enlace (opcional)</label>
+                        <input type="text" id="collLink" placeholder="product-detail.html?id=3 o https://...">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Descripción / subtítulo (opcional)</label>
+                        <input type="text" id="collDescripcion" placeholder="Texto que aparece debajo del título">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="collActivo" checked> Visible en la home
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn" id="collectionSubmitBtn" style="margin-top: 16px;">
+                    <i class="fas fa-save"></i> Guardar tarjeta
+                </button>
+            </form>
+        </div>
+        <div class="products-section" style="margin-top: 24px;">
+            <h2 class="section-title">
+                <i class="fas fa-list"></i> Tarjetas de colección 
+                <span id="collectionCount" class="success"></span>
+            </h2>
+            <div id="collectionList">
+                <div class="empty-state" id="collectionEmptyState">
+                    <i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;color:#d4af37;"></i>
+                    <p>Cargando colección…</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- Edit Modal Producto -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -339,10 +389,50 @@
         </div>
     </div>
 
+    <!-- Edit Modal Colección -->
+    <div id="editCollectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar tarjeta de colección</h3>
+                <button class="close-btn" onclick="closeEditCollectionModal()">&times;</button>
+            </div>
+            <form id="editCollectionForm">
+                <input type="hidden" id="editCollId">
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" id="editCollTitulo" required>
+                </div>
+                <div class="form-group">
+                    <label>Orden</label>
+                    <input type="number" id="editCollOrden" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label>URL de imagen *</label>
+                    <input type="text" id="editCollImagenUrl">
+                </div>
+                <div class="form-group">
+                    <label>Enlace (opcional)</label>
+                    <input type="text" id="editCollLink" placeholder="product-detail.html?id=3">
+                </div>
+                <div class="form-group">
+                    <label>Descripción (opcional)</label>
+                    <input type="text" id="editCollDescripcion">
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="editCollActivo" checked>
+                    <label for="editCollActivo">Visible en la home</label>
+                </div>
+                <button type="submit" class="btn"><i class="fas fa-save"></i> Guardar</button>
+            </form>
+        </div>
+    </div>
+
 <script>
         let products = [];
         let editingId = null;
         let uploadUrl = '';
+        let collectionItems = [];
+        let editingCollectionId = null;
 
         // Verificar autenticación al cargar
         const token = localStorage.getItem('adminToken');
@@ -743,10 +833,167 @@ ${products.map(p => {
 
         window.loadProducts = loadProducts;
 
+        // --- Colección ---
+        async function loadCollection() {
+            const container = document.getElementById('collectionList');
+            const countEl = document.getElementById('collectionCount');
+            if (!container) return;
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;color:#d4af37;"></i><p>Cargando colección…</p></div>';
+            countEl.textContent = '';
+            try {
+                const res = await fetch('/api/admin/collection', { cache: 'no-store', headers: getAuthHeaders() });
+                const data = await safeJson(res);
+                if (res.status === 401) {
+                    alert('Sesión expirada.');
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin.html';
+                    return;
+                }
+                collectionItems = Array.isArray(data.items) ? data.items : [];
+                renderCollection();
+            } catch (err) {
+                console.error('Load collection:', err);
+                collectionItems = [];
+                container.innerHTML = '<div class="empty-state"><p>No se pudo cargar la colección.</p><button type="button" class="btn" onclick="loadCollection()">Reintentar</button></div>';
+                countEl.textContent = '';
+            }
+        }
+
+        function renderCollection() {
+            const container = document.getElementById('collectionList');
+            const countEl = document.getElementById('collectionCount');
+            if (!container) return;
+            countEl.textContent = collectionItems.length ? '(' + collectionItems.length + ')' : '';
+            if (!collectionItems.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-images" style="font-size:4rem;opacity:.3;margin-bottom:20px;"></i><h3>No hay tarjetas de colección</h3><p>Añade tarjetas arriba para que aparezcan en la sección Colección de la home.</p></div>';
+                return;
+            }
+            container.innerHTML = `
+                <table class="products-table">
+                    <thead><tr><th>Orden</th><th>Imagen</th><th>Título</th><th>Enlace</th><th>Acciones</th></tr></thead>
+                    <tbody>
+                        ${collectionItems.map(c => `
+                            <tr>
+                                <td>${c.orden != null ? c.orden : 0}</td>
+                                <td>${c.imagen_url ? '<img src="' + String(c.imagen_url).replace(/"/g, '&quot;') + '" style="width:50px;height:50px;object-fit:cover;border-radius:4px;" onerror="this.outerHTML=\'<span style=color:#666>—</span>\'">' : '—'}</td>
+                                <td>${(c.titulo || '—').substring(0, 40)}${(c.titulo || '').length > 40 ? '…' : ''}</td>
+                                <td>${(c.link || '—').substring(0, 30)}${(c.link || '').length > 30 ? '…' : ''}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button type="button" class="btn btn-secondary edit-coll-btn" data-id="${c.id}"><i class="fas fa-edit"></i></button>
+                                        <button type="button" class="btn btn-danger delete-coll-btn" data-id="${c.id}"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        document.getElementById('collectionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('collectionSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            try {
+                const payload = {
+                    titulo: document.getElementById('collTitulo').value.trim(),
+                    imagen_url: document.getElementById('collImagenUrl').value.trim(),
+                    link: document.getElementById('collLink').value.trim(),
+                    descripcion: document.getElementById('collDescripcion').value.trim(),
+                    orden: parseInt(document.getElementById('collOrden').value, 10) || 0,
+                    activo: document.getElementById('collActivo').checked
+                };
+                const res = await fetch('/api/admin/collection', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al guardar');
+                alert('Tarjeta creada.');
+                document.getElementById('collectionForm').reset();
+                document.getElementById('collOrden').value = 0;
+                loadCollection();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Guardar tarjeta';
+            }
+        });
+
+        function editCollection(id) {
+            const c = collectionItems.find(x => x.id == id || String(x.id) === String(id));
+            if (!c) return;
+            editingCollectionId = c.id;
+            document.getElementById('editCollId').value = c.id;
+            document.getElementById('editCollTitulo').value = c.titulo || '';
+            document.getElementById('editCollOrden').value = c.orden != null ? c.orden : 0;
+            document.getElementById('editCollImagenUrl').value = c.imagen_url || '';
+            document.getElementById('editCollLink').value = c.link || '';
+            document.getElementById('editCollDescripcion').value = c.descripcion || '';
+            document.getElementById('editCollActivo').checked = c.activo !== false;
+            document.getElementById('editCollectionModal').classList.add('active');
+        }
+
+        function closeEditCollectionModal() {
+            editingCollectionId = null;
+            document.getElementById('editCollectionModal').classList.remove('active');
+        }
+
+        document.getElementById('editCollectionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (editingCollectionId == null) return;
+            try {
+                const res = await fetch('/api/admin/collection', {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        id: editingCollectionId,
+                        titulo: document.getElementById('editCollTitulo').value.trim(),
+                        imagen_url: document.getElementById('editCollImagenUrl').value.trim(),
+                        link: document.getElementById('editCollLink').value.trim(),
+                        descripcion: document.getElementById('editCollDescripcion').value.trim(),
+                        orden: parseInt(document.getElementById('editCollOrden').value, 10) || 0,
+                        activo: document.getElementById('editCollActivo').checked
+                    })
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al actualizar');
+                closeEditCollectionModal();
+                loadCollection();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        async function deleteCollection(id) {
+            if (!confirm('¿Eliminar esta tarjeta de la colección?')) return;
+            try {
+                const res = await fetch('/api/admin/collection?id=' + encodeURIComponent(id), { method: 'DELETE', headers: getAuthHeaders() });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al eliminar');
+                loadCollection();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        window.closeEditCollectionModal = closeEditCollectionModal;
+        document.getElementById('collectionList').addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.edit-coll-btn');
+            const delBtn = e.target.closest('.delete-coll-btn');
+            if (editBtn) { e.preventDefault(); editCollection(editBtn.getAttribute('data-id')); }
+            else if (delBtn) { e.preventDefault(); deleteCollection(delBtn.getAttribute('data-id')); }
+        });
+
         // Init: enlazar botón Reintentar del HTML inicial y cargar productos (sin reintento automático para evitar bucle)
         var initialRetry = document.getElementById('retryLoadBtn');
         if (initialRetry) initialRetry.addEventListener('click', loadProducts);
         loadProducts();
+        loadCollection();
     </script>
 </body>
 </html>

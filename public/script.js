@@ -37,11 +37,53 @@ async function loadProducts() {
         products = Array.isArray(data) ? data : [];
         window.products = products;
         renderProducts(products);
-        renderCollection();
         initProductsFilter();
+        loadCollection();
     } catch (error) {
         console.error('Error:', error);
     }
+}
+
+async function loadCollection() {
+    if (!collectionGrid) return;
+    try {
+        const res = await fetch('/api/collection');
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : [];
+        renderCollection(items);
+    } catch (err) {
+        console.error('Error loading collection:', err);
+        renderCollection([]);
+    }
+}
+
+function renderCollection(items) {
+    if (!collectionGrid) return;
+    collectionRendered = true;
+    if (!items || items.length === 0) {
+        collectionGrid.innerHTML = '<p class="collection-empty-hint" style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:40px;">No hay tarjetas de colección. Añádelas desde el panel de administración.</p>';
+        return;
+    }
+    collectionGrid.innerHTML = items.map((c) => {
+        const imgUrl = c.imagen_url || '';
+        const titulo = (c.titulo || '').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        const desc = (c.descripcion || '').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        let href = (c.link || '').trim();
+        if (href && !/^https?:\/\//i.test(href) && !href.startsWith('/') && !href.startsWith('#')) {
+            if (/^\d+$/.test(href)) href = 'product-detail.html?id=' + href;
+            else if (!href.includes('.html')) href = 'product-detail.html?id=' + href;
+        }
+        const clickAttr = href ? `onclick="window.location.href='${href.replace(/'/g, "\\'")}'"` : '';
+        return `
+        <article class="collection-item" ${clickAttr} style="cursor:${href ? 'pointer' : 'default'}">
+            <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${titulo}" loading="lazy" crossorigin="anonymous" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;">
+            <div class="collection-overlay">
+                <h3 class="collection-title">${titulo}</h3>
+                ${desc ? `<span class="collection-price">${desc}</span>` : ''}
+            </div>
+        </article>
+    `;
+    }).join('');
 }
 
 function buildProductCardsHTML(productsToRender) {
@@ -110,23 +152,6 @@ function renderProducts(productsToRender) {
     if (emptyState) emptyState.style.display = 'none';
 }
 
-function renderCollection() {
-    if (!collectionGrid || collectionRendered) return;
-    collectionRendered = true;
-    const collectionProducts = products.slice(0, 8);
-    collectionGrid.innerHTML = collectionProducts.map((product) => {
-        const imgUrl = product.imagen_url || product.image;
-        return `
-        <article class="collection-item" onclick="window.location.href='product-detail.html?id=${product.id}'">
-            <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${(product.name || '').replace(/"/g, '&quot;')}" crossorigin="anonymous" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;">
-            <div class="collection-overlay">
-                <h3 class="collection-title">${product.name}</h3>
-                <span class="collection-price">$${product.price}</span>
-            </div>
-        </article>
-    `;
-    }).join('');
-}
 
 // Lógica de Carrito básica para que no de error (+ efecto visual en página principal)
 window.addToCart = function(productId, ev) {
