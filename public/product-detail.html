@@ -22,32 +22,37 @@
         </div>
 
         <div class="product-info-side">
-            <span id="p-category" style="color: #c9a962; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;"></span>
-            <h1 id="p-name" style="font-family: 'Playfair Display', serif; font-size: 3rem; margin: 15px 0; color: #fff;"></h1>
-            <p id="p-price" style="font-size: 1.8rem; color: #c9a962; font-weight: bold; margin-bottom: 25px;"></p>
+            <label style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 8px; display: block;">CATEGORÍA</label>
+            <input type="text" id="p-category" readonly style="width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #c9a962; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; font-family: inherit;">
+            
+            <label style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 8px; display: block;">NOMBRE DEL PRODUCTO</label>
+            <input type="text" id="p-name" readonly style="width: 100%; padding: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 4px; font-size: 1.8rem; font-family: 'Playfair Display', serif; margin-bottom: 15px;">
+            
+            <label style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 8px; display: block;">PRECIO</label>
+            <input type="text" id="p-price" readonly style="width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #c9a962; border-radius: 4px; font-size: 1.5rem; font-weight: bold; margin-bottom: 25px; font-family: inherit;">
             
             <div style="border-top: 1px solid #1a1a1a; padding-top: 25px;">
-                <p style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">DESCRIPCIÓN</p>
-                <p id="p-desc" style="color: #a0a0a0; line-height: 1.8; font-size: 1rem; margin-bottom: 25px; white-space: pre-wrap;"></p>
+                <label style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 8px; display: block;">DESCRIPCIÓN</label>
+                <textarea id="p-desc" readonly rows="6" style="width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #a0a0a0; border-radius: 4px; font-size: 1rem; line-height: 1.8; margin-bottom: 25px; font-family: inherit; resize: vertical;"></textarea>
                 
                 <div id="p-short-desc" style="display: none; margin-bottom: 25px;">
-                    <p style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">DESCRIPCIÓN CORTA</p>
-                    <p style="color: #a0a0a0; line-height: 1.8; font-size: 0.95rem; white-space: pre-wrap;"></p>
+                    <label style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 8px; display: block;">DESCRIPCIÓN CORTA</label>
+                    <textarea readonly rows="3" style="width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #a0a0a0; border-radius: 4px; font-size: 0.95rem; line-height: 1.8; font-family: inherit; resize: vertical;"></textarea>
                 </div>
                 
                 <div id="p-size" style="display: none; margin-bottom: 25px;">
-                    <p style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">TAMAÑO</p>
-                    <p style="color: #a0a0a0; font-size: 0.95rem;"></p>
+                    <label style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 8px; display: block;">TAMAÑO</label>
+                    <input type="text" readonly style="width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #a0a0a0; border-radius: 4px; font-size: 0.95rem; font-family: inherit;">
                 </div>
                 
                 <div id="p-ingredients" style="display: none; margin-bottom: 25px;">
-                    <p style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">INGREDIENTES</p>
-                    <p style="color: #a0a0a0; line-height: 1.8; font-size: 0.95rem; white-space: pre-wrap;"></p>
+                    <label style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 8px; display: block;">INGREDIENTES</label>
+                    <textarea readonly rows="4" style="width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #a0a0a0; border-radius: 4px; font-size: 0.95rem; line-height: 1.8; font-family: inherit; resize: vertical;"></textarea>
                 </div>
                 
                 <div id="p-how-to-use" style="display: none; margin-bottom: 25px;">
-                    <p style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 10px;">MODO DE USO</p>
-                    <p style="color: #a0a0a0; line-height: 1.8; font-size: 0.95rem; white-space: pre-wrap;"></p>
+                    <label style="color: #c9a962; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 8px; display: block;">MODO DE USO</label>
+                    <textarea readonly rows="4" style="width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #a0a0a0; border-radius: 4px; font-size: 0.95rem; line-height: 1.8; font-family: inherit; resize: vertical;"></textarea>
                 </div>
             </div>
 
@@ -74,14 +79,6 @@
                 const product = products.find(p => p.id == productId);
 
                 if (product) {
-                    // Llenamos los datos básicos
-                    document.getElementById('p-name').textContent = product.nombre || product.name || 'Producto';
-                    document.getElementById('p-price').textContent = `$${Number(product.precio || product.price || 0).toLocaleString()}`;
-                    
-                    // Descripción completa (priorizar description que es el mapeo correcto)
-                    const fullDesc = product.description || product.descripcion || 'Sin descripción disponible.';
-                    document.getElementById('p-desc').textContent = fullDesc;
-                    
                     // Categoría
                     const categoryMap = {
                         'face': 'ROSTRO',
@@ -89,14 +86,24 @@
                         'hair': 'CABELLO'
                     };
                     const category = product.categoria || product.category || '';
-                    document.getElementById('p-category').textContent = categoryMap[category.toLowerCase()] || category.toUpperCase() || 'CUIDADO PREMIUM';
+                    document.getElementById('p-category').value = categoryMap[category.toLowerCase()] || category.toUpperCase() || 'CUIDADO PREMIUM';
+                    
+                    // Nombre del producto
+                    document.getElementById('p-name').value = product.nombre || product.name || 'Producto';
+                    
+                    // Precio
+                    document.getElementById('p-price').value = `$${Number(product.precio || product.price || 0).toLocaleString()}`;
+                    
+                    // Descripción completa (priorizar description que es el mapeo correcto)
+                    const fullDesc = product.description || product.descripcion || 'Sin descripción disponible.';
+                    document.getElementById('p-desc').value = fullDesc;
                     
                     // Descripción corta
                     const shortDesc = product.shortDescription || product['descripcion corta'];
                     if (shortDesc && shortDesc.trim()) {
                         const shortDescEl = document.getElementById('p-short-desc');
                         shortDescEl.style.display = 'block';
-                        shortDescEl.querySelector('p:last-child').textContent = shortDesc;
+                        shortDescEl.querySelector('textarea').value = shortDesc;
                     }
                     
                     // Tamaño
@@ -104,7 +111,7 @@
                     if (size && size.trim()) {
                         const sizeEl = document.getElementById('p-size');
                         sizeEl.style.display = 'block';
-                        sizeEl.querySelector('p:last-child').textContent = size;
+                        sizeEl.querySelector('input').value = size;
                     }
                     
                     // Ingredientes
@@ -112,7 +119,7 @@
                     if (ingredients && ingredients.trim()) {
                         const ingredientsEl = document.getElementById('p-ingredients');
                         ingredientsEl.style.display = 'block';
-                        ingredientsEl.querySelector('p:last-child').textContent = ingredients;
+                        ingredientsEl.querySelector('textarea').value = ingredients;
                     }
                     
                     // Modo de uso
@@ -120,7 +127,7 @@
                     if (howToUse && howToUse.trim()) {
                         const howToUseEl = document.getElementById('p-how-to-use');
                         howToUseEl.style.display = 'block';
-                        howToUseEl.querySelector('p:last-child').textContent = howToUse;
+                        howToUseEl.querySelector('textarea').value = howToUse;
                     }
                     
                     const img = document.getElementById('p-image');
