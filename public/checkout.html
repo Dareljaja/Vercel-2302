@@ -22,11 +22,27 @@
         .checkout-empty { text-align: center; padding: 60px 20px; color: #999; }
         .checkout-empty a { color: #c9a962; text-decoration: none; }
         .checkout-actions { display: flex; flex-direction: column; gap: 12px; }
-        .checkout-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 24px; text-decoration: none; border-radius: 8px; font-weight: 700; letter-spacing: 1px; transition: all 0.2s; }
-        .btn-whatsapp { background: #25d366; color: #fff; border: none; }
+        .checkout-form { margin-bottom: 24px; }
+        .checkout-form .form-group { margin-bottom: 16px; }
+        .checkout-form label { display: block; color: #c9a962; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 6px; }
+        .checkout-form input, .checkout-form textarea {
+            width: 100%; padding: 12px 14px; background: #111; border: 1px solid rgba(201,169,98,0.3);
+            border-radius: 6px; color: #fff; font-size: 1rem; font-family: inherit; box-sizing: border-box;
+        }
+        .checkout-form input::placeholder, .checkout-form textarea::placeholder { color: #666; }
+        .checkout-form input:focus, .checkout-form textarea:focus {
+            outline: none; border-color: #c9a962; box-shadow: 0 0 0 2px rgba(201,169,98,0.2);
+        }
+        .checkout-form textarea { min-height: 80px; resize: vertical; }
+        .checkout-form .hint { color: #666; font-size: 0.8rem; margin-top: 4px; }
+        .checkout-actions { display: flex; flex-direction: column; gap: 12px; }
+        .checkout-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 24px; border-radius: 8px; font-weight: 700; letter-spacing: 1px; transition: all 0.2s; cursor: pointer; font-size: 1rem; border: none; text-decoration: none; font-family: inherit; }
+        .btn-whatsapp { background: #25d366; color: #fff; }
         .btn-whatsapp:hover { background: #20bd5a; transform: translateY(-1px); }
+        .btn-whatsapp:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .btn-back { background: transparent; color: #c9a962; border: 1px solid rgba(201,169,98,0.4); }
         .btn-back:hover { background: rgba(201,169,98,0.1); }
+        .form-error { color: #e74c3c; font-size: 0.85rem; margin-top: 4px; }
     </style>
 </head>
 <body style="background: #0a0a0a; color: #fff; font-family: 'DM Sans', sans-serif; min-height: 100vh;">
@@ -65,12 +81,12 @@
             }
 
             let total = 0;
-            const lines = [];
+            const orderLines = [];
             const itemsHtml = cart.map(item => {
                 const price = getPrice(item);
                 const subtotal = price * item.quantity;
                 total += subtotal;
-                lines.push(`${item.quantity}x ${getName(item)} - $${subtotal.toLocaleString()}`);
+                orderLines.push(`${item.quantity}x ${getName(item)} - $${subtotal.toLocaleString()}`);
                 return `
                     <li class="checkout-item">
                         <img src="${getImg(item)}" alt="" onerror="this.src='${PLACEHOLDER_IMG}'">
@@ -82,17 +98,91 @@
                     </li>`;
             }).join('');
 
-            const text = encodeURIComponent('Hola, quiero finalizar mi compra:\n\n' + lines.join('\n') + '\n\nTotal: $' + total.toLocaleString());
-
             container.innerHTML = `
                 <ul class="checkout-list">${itemsHtml}</ul>
                 <div class="checkout-total">TOTAL: <span id="checkoutTotal">$${total.toLocaleString()}</span></div>
-                <div class="checkout-actions">
-                    <a href="${WHATSAPP_LINK}?text=${text}" class="btn btn-whatsapp" target="_blank" rel="noopener">
-                        <i class="fab fa-whatsapp"></i> Completar compra por WhatsApp
-                    </a>
-                    <a href="index.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Seguir comprando</a>
-                </div>`;
+                <form id="checkoutForm" class="checkout-form" novalidate>
+                    <div class="form-group">
+                        <label for="nombre">Nombre y apellido *</label>
+                        <input type="text" id="nombre" name="nombre" required placeholder="Ej: María García">
+                        <span class="form-error" id="err-nombre"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required placeholder="tu@email.com">
+                        <span class="form-error" id="err-email"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono / WhatsApp *</label>
+                        <input type="tel" id="telefono" name="telefono" required placeholder="Ej: 11 1234-5678">
+                        <span class="form-error" id="err-telefono"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="direccion">Dirección de entrega *</label>
+                        <input type="text" id="direccion" name="direccion" required placeholder="Calle, número, piso/depto">
+                        <span class="form-error" id="err-direccion"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="localidad">Localidad / Ciudad *</label>
+                        <input type="text" id="localidad" name="localidad" required placeholder="Ej: CABA, La Plata">
+                        <span class="form-error" id="err-localidad"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="cp">Código postal</label>
+                        <input type="text" id="cp" name="cp" placeholder="Ej: 1234">
+                    </div>
+                    <div class="form-group">
+                        <label for="comentarios">Comentarios del pedido</label>
+                        <textarea id="comentarios" name="comentarios" placeholder="Horario preferido, instrucciones, etc."></textarea>
+                    </div>
+                    <div class="checkout-actions">
+                        <button type="submit" class="btn btn-whatsapp" id="btnEnviar">
+                            <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
+                        </button>
+                        <a href="index.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Seguir comprando</a>
+                    </div>
+                </form>`;
+
+            const form = document.getElementById('checkoutForm');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const nombre = (document.getElementById('nombre').value || '').trim();
+                const email = (document.getElementById('email').value || '').trim();
+                const telefono = (document.getElementById('telefono').value || '').trim();
+                const direccion = (document.getElementById('direccion').value || '').trim();
+                const localidad = (document.getElementById('localidad').value || '').trim();
+                const cp = (document.getElementById('cp').value || '').trim();
+                const comentarios = (document.getElementById('comentarios').value || '').trim();
+
+                document.querySelectorAll('.form-error').forEach(el => { el.textContent = ''; });
+                let valid = true;
+                if (!nombre) { document.getElementById('err-nombre').textContent = 'Ingresá tu nombre.'; valid = false; }
+                if (!email) { document.getElementById('err-email').textContent = 'Ingresá tu email.'; valid = false; }
+                if (!telefono) { document.getElementById('err-telefono').textContent = 'Ingresá tu teléfono.'; valid = false; }
+                if (!direccion) { document.getElementById('err-direccion').textContent = 'Ingresá la dirección.'; valid = false; }
+                if (!localidad) { document.getElementById('err-localidad').textContent = 'Ingresá localidad/ciudad.'; valid = false; }
+                if (!valid) return;
+
+                const msg = [
+                    'Hola, quiero finalizar mi compra.',
+                    '',
+                    '— DATOS —',
+                    'Nombre: ' + nombre,
+                    'Email: ' + email,
+                    'Teléfono: ' + telefono,
+                    'Dirección: ' + direccion,
+                    'Localidad: ' + localidad + (cp ? ' (CP: ' + cp + ')' : ''),
+                    comentarios ? 'Comentarios: ' + comentarios : '',
+                    '',
+                    '— PEDIDO —',
+                    ...orderLines,
+                    '',
+                    'Total: $' + total.toLocaleString()
+                ].filter(Boolean).join('\n');
+
+                const url = WHATSAPP_LINK + '?text=' + encodeURIComponent(msg);
+                window.open(url, '_blank', 'noopener');
+            });
         })();
     </script>
 </body>
