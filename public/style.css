@@ -75,6 +75,31 @@ a {
 
 ul { list-style: none; }
 
+/* Franja superior tipo Tiendanube - Solo envíos a Córdoba */
+.top-shipping-banner {
+    background: #fff;
+    color: #333;
+    padding: 10px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #eee;
+}
+.top-shipping-banner .marquee-wrap {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 18s linear infinite;
+}
+.top-shipping-banner .marquee-content {
+    display: inline-block;
+}
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
 button {
     font-family: inherit;
     cursor: pointer;
