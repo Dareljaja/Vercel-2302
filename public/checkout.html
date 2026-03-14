@@ -62,7 +62,8 @@
         (function() {
             const CART_KEY = '2302_cart';
             const PLACEHOLDER_IMG = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%231a1a1a" width="200" height="200"/%3E%3Ctext fill="%23666" x="100" y="100" text-anchor="middle" dominant-baseline="middle" font-size="14"%3ESin imagen%3C/text%3E%3C/svg%3E';
-            const WHATSAPP_LINK = 'https://wa.me/message/NE6P75Q2VMSLH1';
+            // Número de WhatsApp de la tienda: código país + número sin + ni espacios.
+            const WHATSAPP_PHONE = '5493543560057';
 
             function getPrice(item) { return Number(item.price ?? item.precio ?? 0); }
             function getName(item) { return item.name ?? item.nombre ?? 'Producto'; }
@@ -212,10 +213,8 @@
                     'TOTAL: $' + totalActual.toLocaleString()
                 ].filter(Boolean).join('\n');
 
-                // Abrir WhatsApp (en el celular o web) con el mensaje ya escrito para enviar a la tienda
-                const urlBase = WHATSAPP_LINK.replace(/#.*$/, '');
-                const sep = urlBase.indexOf('?') >= 0 ? '&' : '?';
-                const url = urlBase + sep + 'text=' + encodeURIComponent(msg);
+                // Abrir WhatsApp con el mensaje ya escrito (wa.me/NUMERO?text= es el formato que muestra el mensaje)
+                const url = 'https://wa.me/' + WHATSAPP_PHONE + '?text=' + encodeURIComponent(msg);
                 window.open(url, '_blank', 'noopener');
             });
         })();
