@@ -38,20 +38,19 @@ export default async function handler(req, res) {
     }
 
     // Mapear columnas en español a name, price, image, etc. para la web
+    const defaultVis = () => ({ showDescription: true, showShortDescription: true, showSize: true, showIngredients: true, showHowToUse: true });
     const products = (data || []).map(p => {
       const imageUrl = p.imagen_url ?? p.image ?? '';
+      const vis = p.section_visibility && typeof p.section_visibility === 'object' ? p.section_visibility : defaultVis();
       return {
         ...p,
         name: p.nombre ?? p.name,
         nombre: p.nombre ?? p.name,
         price: p.precio ?? p.price,
         precio: p.precio ?? p.price,
-        // Descripción completa (prioridad: con espacio, sin espacio, descripcion, description)
         description: p['descripcion completa'] ?? p['descripcioncompleta'] ?? p.descripcion ?? p.description,
         descripcion: p['descripcion completa'] ?? p['descripcioncompleta'] ?? p.descripcion ?? p.description,
-        // Descripción corta
         shortDescription: p['descripcion corta'] ?? p['descripcioncorta'] ?? p.shortDescription,
-        // Otros campos
         image: imageUrl,
         imagen_url: imageUrl,
         category: p.categoria ?? p.category,
@@ -62,7 +61,12 @@ export default async function handler(req, res) {
         ingredientes: p.ingredientes ?? p.ingredients,
         howToUse: p['modo de uso'] ?? p['mododeuso'] ?? p.howToUse,
         popular: p.popular ?? false,
-        offer: p.offer ?? false
+        offer: p.offer ?? false,
+        showDescription: vis.showDescription !== false,
+        showShortDescription: vis.showShortDescription !== false,
+        showSize: vis.showSize !== false,
+        showIngredients: vis.showIngredients !== false,
+        showHowToUse: vis.showHowToUse !== false
       };
     });
 

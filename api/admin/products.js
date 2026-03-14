@@ -63,20 +63,29 @@ export default async function handler(req, res) {
 
       // Mapear columnas en español al formato del frontend (name, price, category...)
       // Algunos clientes devuelven columnas con espacios como "descripcion completa" o sin espacio
-      const products = (rows || []).map(p => ({
-        ...p,
-        name: p.nombre ?? p.name,
-        price: p.precio ?? p.price,
-        description: p['descripcion completa'] ?? p['descripcioncompleta'] ?? p.descripcion ?? p.description,
-        shortDescription: p['descripcion corta'] ?? p['descripcioncorta'] ?? p.shortDescription,
-        image_url: p.imagen_url ?? p.image_url,
-        category: p.categoria ?? p.category,
-        size: p.tamaño ?? p.size,
-        ingredients: p.ingredientes ?? p.ingredients,
-        howToUse: p['modo de uso'] ?? p['mododeuso'] ?? p.howToUse,
-        popular: p.popular ?? false,
-        offer: p.offer ?? false
-      }));
+      const defaultVisibility = () => ({ showDescription: true, showShortDescription: true, showSize: true, showIngredients: true, showHowToUse: true });
+      const products = (rows || []).map(p => {
+        const vis = p.section_visibility && typeof p.section_visibility === 'object' ? p.section_visibility : defaultVisibility();
+        return {
+          ...p,
+          name: p.nombre ?? p.name,
+          price: p.precio ?? p.price,
+          description: p['descripcion completa'] ?? p['descripcioncompleta'] ?? p.descripcion ?? p.description,
+          shortDescription: p['descripcion corta'] ?? p['descripcioncorta'] ?? p.shortDescription,
+          image_url: p.imagen_url ?? p.image_url,
+          category: p.categoria ?? p.category,
+          size: p.tamaño ?? p.size,
+          ingredients: p.ingredientes ?? p.ingredients,
+          howToUse: p['modo de uso'] ?? p['mododeuso'] ?? p.howToUse,
+          popular: p.popular ?? false,
+          offer: p.offer ?? false,
+          showDescription: vis.showDescription !== false,
+          showShortDescription: vis.showShortDescription !== false,
+          showSize: vis.showSize !== false,
+          showIngredients: vis.showIngredients !== false,
+          showHowToUse: vis.showHowToUse !== false
+        };
+      });
 
       return res.status(200).json({ success: true, products });
 
@@ -85,6 +94,13 @@ export default async function handler(req, res) {
       const input = req.body;
       const imagenUrl = sanitizeUrl(input.image_url ?? input.imagen_url);
 
+      const sectionVisibility = {
+        showDescription: input.showDescription !== false,
+        showShortDescription: input.showShortDescription !== false,
+        showSize: input.showSize !== false,
+        showIngredients: input.showIngredients !== false,
+        showHowToUse: input.showHowToUse !== false
+      };
       const product = {
         nombre: sanitize(input.name) || '',
         precio: parseFloat(input.price) || 0,
@@ -96,7 +112,8 @@ export default async function handler(req, res) {
         ingredientes: sanitize(input.ingredients) || '',
         'modo de uso': sanitize(input.howToUse) || '',
         popular: Boolean(input.popular) || false,
-        offer: Boolean(input.offer) || false
+        offer: Boolean(input.offer) || false,
+        section_visibility: sectionVisibility
       };
 
       const { data, error } = await supabaseAdmin
@@ -107,7 +124,8 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
-      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false };
+      const vis = data.section_visibility && typeof data.section_visibility === 'object' ? data.section_visibility : {};
+      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false, showDescription: vis.showDescription !== false, showShortDescription: vis.showShortDescription !== false, showSize: vis.showSize !== false, showIngredients: vis.showIngredients !== false, showHowToUse: vis.showHowToUse !== false };
       return res.status(201).json({ success: true, product: forFrontend });
 
     } else if (req.method === 'PUT') {
@@ -125,6 +143,15 @@ export default async function handler(req, res) {
       if (updateData.howToUse !== undefined) cleanUpdate['modo de uso'] = sanitize(updateData.howToUse);
       if (updateData.popular !== undefined) cleanUpdate.popular = Boolean(updateData.popular);
       if (updateData.offer !== undefined) cleanUpdate.offer = Boolean(updateData.offer);
+      if (updateData.showDescription !== undefined || updateData.showShortDescription !== undefined || updateData.showSize !== undefined || updateData.showIngredients !== undefined || updateData.showHowToUse !== undefined) {
+        cleanUpdate.section_visibility = {
+          showDescription: updateData.showDescription !== false,
+          showShortDescription: updateData.showShortDescription !== false,
+          showSize: updateData.showSize !== false,
+          showIngredients: updateData.showIngredients !== false,
+          showHowToUse: updateData.showHowToUse !== false
+        };
+      }
 
       const { data, error } = await supabaseAdmin
         .from('productos')
@@ -135,7 +162,8 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
-      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false };
+      const visPut = data.section_visibility && typeof data.section_visibility === 'object' ? data.section_visibility : {};
+      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false, showDescription: visPut.showDescription !== false, showShortDescription: visPut.showShortDescription !== false, showSize: visPut.showSize !== false, showIngredients: visPut.showIngredients !== false, showHowToUse: visPut.showHowToUse !== false };
       return res.status(200).json({ success: true, product: forFrontend });
 
     } else if (req.method === 'DELETE') {
