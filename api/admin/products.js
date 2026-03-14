@@ -45,17 +45,18 @@ export default async function handler(req, res) {
       if (error) throw error;
 
       // Mapear columnas en español al formato del frontend (name, price, category...)
+      // Algunos clientes devuelven columnas con espacios como "descripcion completa" o sin espacio
       const products = (rows || []).map(p => ({
         ...p,
         name: p.nombre ?? p.name,
         price: p.precio ?? p.price,
-        description: p['descripcion completa'] ?? p.descripcion ?? p.description,
-        shortDescription: p['descripcion corta'] ?? p.shortDescription,
+        description: p['descripcion completa'] ?? p['descripcioncompleta'] ?? p.descripcion ?? p.description,
+        shortDescription: p['descripcion corta'] ?? p['descripcioncorta'] ?? p.shortDescription,
         image_url: p.imagen_url ?? p.image_url,
         category: p.categoria ?? p.category,
         size: p.tamaño ?? p.size,
         ingredients: p.ingredientes ?? p.ingredients,
-        howToUse: p['modo de uso'] ?? p.howToUse
+        howToUse: p['modo de uso'] ?? p['mododeuso'] ?? p.howToUse
       }));
 
       return res.status(200).json({ success: true, products });
