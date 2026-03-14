@@ -372,8 +372,11 @@
                         <input type="text" id="collImagenUrl" placeholder="https://...">
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>Enlace (opcional)</label>
-                        <input type="text" id="collLink" placeholder="product-detail.html?id=3 o https://...">
+                        <label>Categoría de destino (opcional)</label>
+                        <select id="collLink">
+                            <option value="">— Sin enlace —</option>
+                        </select>
+                        <p class="form-hint">Al hacer clic en la tarjeta en la home, se irá a Productos filtrado por esta categoría.</p>
                     </div>
                     <div class="form-group" style="grid-column: 1 / -1;">
                         <label>Descripción / subtítulo (opcional)</label>
@@ -437,8 +440,10 @@
                     <input type="text" id="editCollImagenUrl">
                 </div>
                 <div class="form-group">
-                    <label>Enlace (opcional)</label>
-                    <input type="text" id="editCollLink" placeholder="product-detail.html?id=3">
+                    <label>Categoría de destino (opcional)</label>
+                    <select id="editCollLink">
+                        <option value="">— Sin enlace —</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Descripción (opcional)</label>
@@ -508,9 +513,14 @@
                     return;
                 }
                 categories = Array.isArray(data.categories) ? data.categories : [];
+                var catOptions = '<option value="">— Sin enlace —</option>' + categories.map(function(c) { return '<option value="' + (c.slug || '').replace(/"/g, '&quot;') + '">' + (c.nombre || c.slug || '').replace(/</g, '&lt;') + '</option>'; }).join('');
                 if (sel) {
-                    sel.innerHTML = '<option value="">— Seleccionar —</option>' + categories.map(c => '<option value="' + (c.slug || '').replace(/"/g, '&quot;') + '">' + (c.nombre || c.slug || '').replace(/</g, '&lt;') + '</option>').join('');
+                    sel.innerHTML = '<option value="">— Seleccionar —</option>' + categories.map(function(c) { return '<option value="' + (c.slug || '').replace(/"/g, '&quot;') + '">' + (c.nombre || c.slug || '').replace(/</g, '&lt;') + '</option>'; }).join('');
                 }
+                var collLinkSel = document.getElementById('collLink');
+                var editCollLinkSel = document.getElementById('editCollLink');
+                if (collLinkSel) collLinkSel.innerHTML = catOptions;
+                if (editCollLinkSel) editCollLinkSel.innerHTML = catOptions;
                 if (listEl) {
                     if (!categories.length) {
                         listEl.innerHTML = '<div class="empty-state"><p>No hay categorías. Agrega una arriba.</p></div>';
