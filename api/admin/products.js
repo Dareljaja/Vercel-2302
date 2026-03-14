@@ -1,35 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase env vars: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY');
+function getSupabase() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
-
-const JWT_SECRET = process.env.JWT_SECRET || 'shop2302_secret_dev';
-
-const verifyToken = (req) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token) return null;
-  try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch {
-    return null;
-  }
-};
+const supabaseAdmin = getSupabase();
 
 const sanitize = (str) => str?.toString().replace(/[&<>\\"'\\/]/g, '');
 
 export default async function handler(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
+  }
+
+  if (!supabaseAdmin) {
+    return res.status(500).json({
+      success: false,
+      message: 'Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en Vercel (Settings > Environment Variables)'
+    });
   }
 
   try {
