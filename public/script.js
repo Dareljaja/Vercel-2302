@@ -52,6 +52,14 @@ async function loadProducts() {
         }
         initProductsFilter();
         loadCollection();
+        var params = new URLSearchParams(window.location.search);
+        var categoryParam = params.get('category');
+        if (categoryParam && catSelect) {
+            catSelect.value = categoryParam;
+            applyProductsFilter();
+            var productsSection = document.getElementById('products');
+            if (productsSection) productsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     } catch (error) {
         console.error('Error:', error);
     }
@@ -83,8 +91,13 @@ function renderCollection(items) {
         const desc = (c.descripcion || '').replace(/</g, '&lt;').replace(/"/g, '&quot;');
         let href = (c.link || '').trim();
         if (href && !/^https?:\/\//i.test(href) && !href.startsWith('/') && !href.startsWith('#')) {
-            if (/^\d+$/.test(href)) href = 'product-detail.html?id=' + href;
-            else if (!href.includes('.html')) href = 'product-detail.html?id=' + href;
+            if (/^\d+$/.test(href)) {
+                href = 'product-detail.html?id=' + href;
+            } else if (href.includes('.html')) {
+                href = href;
+            } else {
+                href = 'index.html?category=' + encodeURIComponent(href);
+            }
         }
         const clickAttr = href ? `onclick="window.location.href='${href.replace(/'/g, "\\'")}'"` : '';
         return `
