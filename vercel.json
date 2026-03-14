@@ -2,23 +2,7 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/api/products",
-      "destination": "/api/products/index.js"
-    },
-    {
-      "source": "/api/login",
-      "destination": "/api/login.js"
-    },
-    {
-      "source": "/api/admin/products",
-      "destination": "/api/admin/products.js"
-    },
-    {
-      "source": "/api/admin/upload",
-      "destination": "/api/admin/upload.js"
-    },
-    {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api).*)",
       "destination": "/public/$1"
     }
   ]
