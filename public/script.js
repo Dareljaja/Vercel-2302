@@ -8,6 +8,10 @@ let cart = [];
 let productsRendered = false;
 let collectionRendered = false;
 
+// Placeholder cuando no hay URL de imagen (SVG gris con texto)
+const PLACEHOLDER_IMG = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%231a1a1a" width="200" height="200"/%3E%3Ctext fill="%23666" x="100" y="100" text-anchor="middle" dominant-baseline="middle" font-size="12" font-family="sans-serif"%3ESin imagen%3C/text%3E%3C/svg%3E';
+if (typeof window !== 'undefined') window.PLACEHOLDER_IMG = PLACEHOLDER_IMG;
+
 const productsGrid = document.getElementById('productsGrid');
 const collectionGrid = document.getElementById('collectionGrid');
 const cartItemsContainer = document.getElementById('cartItems');
@@ -42,10 +46,12 @@ function renderProducts(productsToRender) {
     if (!productsGrid || productsRendered) return;
     productsRendered = true;
     
-    productsGrid.innerHTML = productsToRender.map((product) => `
+    productsGrid.innerHTML = productsToRender.map((product) => {
+        const imgUrl = product.imagen_url || product.image;
+        return `
         <article class="product-card" onclick="window.location.href='product-detail.html?id=${product.id}'">
             <div class="product-image">
-                <img src="${(product.imagen_url || product.image) || ''}" alt="${product.name || ''}" loading="lazy" onerror="this.onerror=null;this.style.background='#1a1a1a';this.style.minHeight='120px';this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';">
+                <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${product.name || ''}" loading="lazy" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG||'${PLACEHOLDER_IMG}';">
             </div>
             <div class="product-content">
                 <span class="product-category">${product.category}</span>
@@ -56,22 +62,26 @@ function renderProducts(productsToRender) {
                 </button>
             </div>
         </article>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function renderCollection() {
     if (!collectionGrid || collectionRendered) return;
     collectionRendered = true;
     const collectionProducts = products.slice(0, 8);
-    collectionGrid.innerHTML = collectionProducts.map((product) => `
+    collectionGrid.innerHTML = collectionProducts.map((product) => {
+        const imgUrl = product.imagen_url || product.image;
+        return `
         <article class="collection-item" onclick="window.location.href='product-detail.html?id=${product.id}'">
-            <img src="${(product.imagen_url || product.image) || ''}" alt="${product.name || ''}" onerror="this.onerror=null;this.style.background='#1a1a1a';this.style.minHeight='120px';this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';">
+            <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${product.name || ''}" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG||'${PLACEHOLDER_IMG}';">
             <div class="collection-overlay">
                 <h3 class="collection-title">${product.name}</h3>
                 <span class="collection-price">$${product.price}</span>
             </div>
         </article>
-    `).join('');
+    `;
+    }).join('');
 }
 
 // Lógica de Carrito básica para que no de error
