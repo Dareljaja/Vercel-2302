@@ -68,7 +68,15 @@
             function getName(item) { return item.name ?? item.nombre ?? 'Producto'; }
             function getImg(item) { return item.imagen_url ?? item.image ?? PLACEHOLDER_IMG; }
 
-            const cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+            // Solo considerar ítems que son realmente del carrito (tienen id, quantity y nombre)
+            function getCart() {
+                const raw = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+                return Array.isArray(raw) ? raw.filter(function(item) {
+                    return item && (item.id !== undefined && item.id !== null) && Number(item.quantity) > 0 && (item.name || item.nombre);
+                }) : [];
+            }
+
+            const cart = getCart();
 
             const container = document.getElementById('checkoutContent');
             if (cart.length === 0) {
@@ -135,13 +143,28 @@
                         <label for="comentarios">Comentarios del pedido</label>
                         <textarea id="comentarios" name="comentarios" placeholder="Horario preferido, instrucciones, etc."></textarea>
                     </div>
+                    <div class="form-group">
+                        <label for="wspLink">Link de WhatsApp donde enviar el pedido *</label>
+                        <input type="url" id="wspLink" name="wspLink" required placeholder="https://wa.me/54911..." value="${WHATSAPP_LINK}">
+                        <span class="form-error" id="err-wspLink"></span>
+                        <span class="hint">Pegá el link de WhatsApp (ej: wa.me/número o link de mensaje directo)</span>
+                    </div>
                     <div class="checkout-actions">
                         <button type="submit" class="btn btn-whatsapp" id="btnEnviar">
                             <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
                         </button>
                         <a href="index.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Seguir comprando</a>
+                        <a href="#" id="vaciarCarrito" style="color:#888;font-size:0.85rem;margin-top:8px;">Vaciar carrito y volver</a>
                     </div>
                 </form>`;
+
+            document.getElementById('vaciarCarrito').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('¿Vaciar el carrito y volver al inicio?')) {
+                    localStorage.removeItem(CART_KEY);
+                    window.location.href = 'index.html';
+                }
+            });
 
             const form = document.getElementById('checkoutForm');
             form.addEventListener('submit', function(e) {
@@ -161,10 +184,30 @@
                 if (!telefono) { document.getElementById('err-telefono').textContent = 'Ingresá tu teléfono.'; valid = false; }
                 if (!direccion) { document.getElementById('err-direccion').textContent = 'Ingresá la dirección.'; valid = false; }
                 if (!localidad) { document.getElementById('err-localidad').textContent = 'Ingresá localidad/ciudad.'; valid = false; }
+                const wspLinkInput = (document.getElementById('wspLink').value || '').trim();
+                if (!wspLinkInput) {
+                    document.getElementById('err-wspLink').textContent = 'Ingresá el link de WhatsApp.';
+                    valid = false;
+                }
                 if (!valid) return;
 
+                // Releer el carrito al enviar para usar siempre el estado actual
+                const cartActual = getCart();
+                if (cartActual.length === 0) {
+                    alert('El carrito está vacío. Agregá productos antes de enviar.');
+                    return;
+                }
+                let totalActual = 0;
+                const lineasPedido = cartActual.map(function(item) {
+                    const price = getPrice(item);
+                    const subtotal = price * item.quantity;
+                    totalActual += subtotal;
+                    return item.quantity + 'x ' + getName(item) + ' - $' + subtotal.toLocaleString();
+                });
+
+                // Un solo mensaje con todo el contenido (datos + pedido + total)
                 const msg = [
-                    'Hola, quiero finalizar mi compra.',
+                    '¡Hola! Quiero comprar en 2302:',
                     '',
                     '— DATOS —',
                     'Nombre: ' + nombre,
@@ -175,12 +218,15 @@
                     comentarios ? 'Comentarios: ' + comentarios : '',
                     '',
                     '— PEDIDO —',
-                    ...orderLines,
+                    lineasPedido.join('\n'),
                     '',
-                    'Total: $' + total.toLocaleString()
+                    'TOTAL: $' + totalActual.toLocaleString()
                 ].filter(Boolean).join('\n');
 
-                const url = WHATSAPP_LINK + '?text=' + encodeURIComponent(msg);
+                // Usar el link que ingresó el usuario; agregar el mensaje como parámetro
+                let urlBase = wspLinkInput.replace(/#.*$/, '');
+                const sep = urlBase.indexOf('?') >= 0 ? '&' : '?';
+                const url = urlBase + sep + 'text=' + encodeURIComponent(msg);
                 window.open(url, '_blank', 'noopener');
             });
         })();
