@@ -48,9 +48,9 @@
             }
 
             try {
-                // Buscamos el producto directamente en tu API
                 const response = await fetch('/api/products');
-                const products = await response.json();
+                const data = await response.json();
+                const products = Array.isArray(data) ? data : [];
                 const product = products.find(p => p.id == productId);
 
                 if (product) {

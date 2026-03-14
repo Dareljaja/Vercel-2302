@@ -353,7 +353,7 @@ ${products.map(p => {
                             <tr>
                                 <td>${p.id ?? '—'}</td>
                                 <td>
-                                    ${(p.image_url || p.imagen_url) ? `<img src="${(p.image_url || p.imagen_url).replace(/"/g, '&quot;')}" style="width:50px;height:50px;object-fit:cover;border-radius:4px;" onerror="this.style.display='none'">` : '—'}
+                                    ${(p.image_url || p.imagen_url) ? `<img src="${String(p.image_url || p.imagen_url).replace(/"/g, '&quot;')}" style="width:50px;height:50px;object-fit:cover;border-radius:4px;background:#1a1a1a;" onerror="this.outerHTML='<span style=color:#666>—</span>'">` : '<span style="color:#666">—</span>'}
                                 </td>
                                 <td>${(p.name ?? p.nombre) || '—'}</td>
                                 <td><span class="price">$${priceStr}</span></td>

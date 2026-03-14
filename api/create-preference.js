@@ -1,20 +1,17 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
-import { writeFileSync } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const client = new MercadoPagoConfig({ 
-  accessToken: process.env.MERCADOPAGO_TOKEN || 'APP_USR-2903382194009460-030714-7875c0826c119a82faa21f70622d091d-164955903',
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MERCADOPAGO_TOKEN
 });
 
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
+  if (!process.env.MERCADOPAGO_TOKEN) {
+    return res.status(500).json({ error: 'Configura MERCADOPAGO_TOKEN en Vercel' });
+  }
   try {
     const input = req.body;
     if (!input.items || !Array.isArray(input.items)) {
@@ -39,9 +36,9 @@ export default async function handler(req, res) {
           email: input.payer?.email || ''
         },
         back_urls: {
-          success: `${req.headers.host}/success.html`,
-          failure: `${req.headers.host}/failure.html`,
-          pending: `${req.headers.host}/pending.html`
+          success: `${req.headers.origin || 'https://' + req.headers.host}/success.html`,
+          failure: `${req.headers.origin || 'https://' + req.headers.host}/failure.html`,
+          pending: `${req.headers.origin || 'https://' + req.headers.host}/pending.html`
         },
         payment_methods: {
           installments: 12

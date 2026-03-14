@@ -34,7 +34,8 @@ async function loadProducts() {
     try {
 const response = await fetch('/api/products');
         const data = await response.json();
-    products = Array.isArray(data) ? data : [];    window.products = products;
+    products = Array.isArray(data) ? data : [];
+        window.products = products;
         renderProducts(products);
         renderCollection();
     } catch (error) {
@@ -98,7 +99,7 @@ window.addToCart = function(productId) {
 function updateCartUI() {
     if (!cartCount) return;
     cartCount.textContent = cart.reduce((sum, i) => sum + i.quantity, 0);
-    if (cartTotal) cartTotal.textContent = `$${cart.reduce((sum, i) => sum + (i.price * i.quantity), 0)}`;
+    if (cartTotal) cartTotal.textContent = `$${cart.reduce((sum, i) => sum + (Number(i.price) || 0) * i.quantity, 0)}`;
 }
 
 function saveCartToStorage() { localStorage.setItem('2302_cart', JSON.stringify(cart)); }

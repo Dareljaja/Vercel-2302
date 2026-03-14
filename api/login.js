@@ -4,6 +4,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'shop2302_secret_dev';
 const ADMIN_PASSWORD = 'shop2302'; // Change in production
 
 export default function handler(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
