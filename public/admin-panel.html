@@ -355,7 +355,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${products.map(p => `
+${products.map(p => `
                             <tr>
                                 <td>${p.id}</td>
                                 <td>
@@ -370,10 +370,10 @@
                                 </td>
                                 <td>
                                     <div class="actions">
-class="btn btn-secondary edit-btn" data-id="${p.id}" onclick="window.editProduct(${p.id})"
+                                        <button class="btn btn-secondary edit-btn" data-id="${p.id}" onclick="window.editProduct(${p.id})">
                                             <i class="fas fa-edit"></i>
                                         </button>
-class="btn btn-danger delete-btn" data-id="${p.id}" onclick="window.deleteProduct(${p.id})"
+                                        <button class="btn btn-danger delete-btn" data-id="${p.id}" onclick="window.deleteProduct(${p.id})">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
