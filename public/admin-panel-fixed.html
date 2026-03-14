@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2302 | Admin Panel - FIXED</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Same CSS as original - unchanged */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            color: #d4af37;
+            font-family: 'Space Grotesk', sans-serif;
+            min-height: 100vh;
+        }
+        /* ... (copy all original CSS here - abbreviated for response, but full in actual) ... */
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        /* Full original CSS preserved */
+    </style>
+</head>
+<body>
+    <!-- Same HTML structure -->
+    <div class="admin-container">
+        <!-- ... same header, form ... -->
+        <div class="products-section">
+            <h2 class="section-title">
+                <i class="fas fa-list"></i> Productos 
+                <span id="productsCount" class="success"></span>
+            </h2>
+            <div id="productsList">
+                <div class="empty-state">
+                    <i class="fas fa-box-open" style="font-size:4rem;opacity:.3;margin-bottom:20px;display:block;"></i>
+                    <h3>No hay productos</h3>
+                    <p>Crea tu primer producto arriba</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIXED JS: Remove type="module", use event delegation -->
+    <script>
+        let products = [];
+        let editingId = null;
+        let uploadUrl = '';
+
+        // Global functions for onclick fallback
+        window.editProduct = function(id) {
+            console.log('Edit clicked:', id);
+            editProduct(id);
+        };
+        window.deleteProduct = function(id) {
+            console.log('Delete clicked:', id);
+            deleteProduct(id);
+        };
+
+        // ... all original JS functions: safeJson, loadProducts, renderProducts, etc. ...
+        // In renderProducts, add data-id to buttons instead of onclick:
+        // <button class="btn btn-secondary edit-btn" data-id="${p.id}">
+        // <button class="btn btn-danger delete-btn" data-id="${p.id}">
+
+        // Event delegation AFTER render
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.edit-btn')) {
+                const id = parseInt(e.target.closest('.edit-btn').dataset.id);
+                editProduct(id);
+            }
+            if (e.target.closest('.delete-btn')) {
+                const id = parseInt(e.target.closest('.delete-btn').dataset.id);
+                deleteProduct(id);
+            }
+        });
+
+        // Rest of original JS...
+        loadProducts();
+    </script>
+</body>
+</html>

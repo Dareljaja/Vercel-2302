@@ -294,7 +294,7 @@
         </div>
     </div>
 
-    <script type="module">
+<script>
         let products = [];
         let editingId = null;
         let uploadUrl = '';
@@ -370,10 +370,10 @@
                                 </td>
                                 <td>
                                     <div class="actions">
-                                        <button class="btn btn-secondary" onclick="editProduct(${p.id})">
+class="btn btn-secondary edit-btn" data-id="${p.id}" onclick="window.editProduct(${p.id})"
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-danger" onclick="deleteProduct(${p.id})">
+class="btn btn-danger delete-btn" data-id="${p.id}" onclick="window.deleteProduct(${p.id})"
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -547,6 +547,24 @@
         function logout() {
             window.location.href = 'index.html';
         }
+
+        // Make functions global - FIX for onclick
+        window.editProduct = editProduct;
+        window.deleteProduct = deleteProduct;
+        window.logout = logout;
+        window.closeEditModal = closeEditModal;
+
+        // Event delegation backup
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.edit-btn')) {
+                const id = parseInt(e.target.closest('.edit-btn').dataset.id);
+                editProduct(id);
+            }
+            if (e.target.closest('.delete-btn')) {
+                const id = parseInt(e.target.closest('.delete-btn').dataset.id);
+                deleteProduct(id);
+            }
+        });
 
         // Init
         loadProducts();
