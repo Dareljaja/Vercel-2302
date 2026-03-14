@@ -190,14 +190,84 @@
             box-shadow: 0 4px 12px rgba(201, 169, 98, 0.3);
         }
         
+        .detail-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #1a1a1a;
+            background: #000;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .detail-header a { color: #c9a962; text-decoration: none; letter-spacing: 2px; font-size: 0.8rem; }
+        .detail-cart-btn {
+            position: relative;
+            background: transparent;
+            border: 1px solid rgba(201, 169, 98, 0.4);
+            color: #c9a962;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .detail-cart-btn:hover { background: rgba(201, 169, 98, 0.1); }
+        .detail-cart-btn .cart-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #c9a962;
+            color: #000;
+            font-size: 0.7rem;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .quantity-selector label { color: #c9a962; font-size: 0.85rem; letter-spacing: 1px; }
+        .quantity-selector .qty-controls {
+            display: flex;
+            align-items: center;
+            border: 1px solid rgba(201, 169, 98, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .quantity-selector .qty-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(201, 169, 98, 0.1);
+            border: none;
+            color: #c9a962;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .quantity-selector .qty-btn:hover { background: rgba(201, 169, 98, 0.2); }
+        .quantity-selector .qty-value {
+            min-width: 48px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body style="background-color: #0a0a0a; color: white; font-family: 'DM Sans', sans-serif; margin: 0;">
     
-    <header style="padding: 20px; text-align: center; border-bottom: 1px solid #1a1a1a; background: #000;">
-        <a href="index.html" style="color: #c9a962; text-decoration: none; letter-spacing: 2px; font-size: 0.8rem;">
-            <i class="fas fa-arrow-left"></i> VOLVER AL INICIO
-        </a>
+    <header class="detail-header">
+        <a href="index.html"><i class="fas fa-arrow-left"></i> VOLVER AL INICIO</a>
+        <button type="button" class="detail-cart-btn cart-btn" id="cartBtn" aria-label="Ver carrito">
+            <i class="fas fa-shopping-bag"></i>
+            <span class="cart-count" id="cartCount">0</span>
+        </button>
     </header>
     
     <main id="product-container" style="max-width: 1100px; margin: 50px auto; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 50px;">
@@ -225,6 +295,16 @@
             
             <!-- Características destacadas -->
             <ul id="features-list" class="features-list" style="display: none;"></ul>
+            
+            <!-- Cantidad -->
+            <div class="quantity-selector">
+                <label for="qty-input">Cantidad</label>
+                <div class="qty-controls">
+                    <button type="button" class="qty-btn" id="qty-minus" aria-label="Menos">−</button>
+                    <span class="qty-value" id="qty-value">1</span>
+                    <button type="button" class="qty-btn" id="qty-plus" aria-label="Más">+</button>
+                </div>
+            </div>
             
             <!-- Botón agregar al carrito -->
             <button id="add-btn" class="add-to-cart-btn">
@@ -418,25 +498,41 @@
                     img.style.display = 'block';
                     document.getElementById('loading-img').style.display = 'none';
 
-                    // Configurar botón de carrito (guardar en localStorage igual que index)
+                    // Selector de cantidad
+                    const qtyValueEl = document.getElementById('qty-value');
+                    const qtyMinus = document.getElementById('qty-minus');
+                    const qtyPlus = document.getElementById('qty-plus');
+                    let qty = 1;
+                    const minQty = 1, maxQty = 99;
+                    function updateQtyDisplay() {
+                        qtyValueEl.textContent = qty;
+                    }
+                    qtyMinus.onclick = () => { if (qty > minQty) { qty--; updateQtyDisplay(); } };
+                    qtyPlus.onclick = () => { if (qty < maxQty) { qty++; updateQtyDisplay(); } };
+
+                    // Agregar al carrito (usa script.js: addToCartWithQuantity y actualiza el sidebar)
                     document.getElementById('add-btn').onclick = () => {
-                        const cartKey = '2302_cart';
-                        const cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
-                        const existing = cart.find(item => String(item.id) === String(product.id));
-                        const cartProduct = {
-                            id: product.id,
-                            name: product.nombre || product.name,
-                            nombre: product.nombre || product.name,
-                            price: product.precio ?? product.price,
-                            precio: product.precio ?? product.price,
-                            imagen_url: product.imagen_url || product.image,
-                            image: product.imagen_url || product.image,
-                            quantity: 1
-                        };
-                        if (existing) existing.quantity += 1;
-                        else cart.push({ ...cartProduct, quantity: 1 });
-                        localStorage.setItem(cartKey, JSON.stringify(cart));
-                        alert('Producto agregado al carrito');
+                        if (typeof window.addToCartWithQuantity === 'function') {
+                            window.addToCartWithQuantity(product, qty);
+                        } else {
+                            const cartKey = '2302_cart';
+                            const cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+                            const existing = cart.find(item => String(item.id) === String(product.id));
+                            const cartProduct = {
+                                id: product.id,
+                                name: product.nombre || product.name,
+                                nombre: product.nombre || product.name,
+                                price: product.precio ?? product.price,
+                                precio: product.precio ?? product.price,
+                                imagen_url: product.imagen_url || product.image,
+                                image: product.imagen_url || product.image
+                            };
+                            if (existing) existing.quantity += qty;
+                            else cart.push({ ...cartProduct, quantity: qty });
+                            localStorage.setItem(cartKey, JSON.stringify(cart));
+                            if (typeof window.refreshCartUI === 'function') window.refreshCartUI();
+                        }
+                        alert(qty === 1 ? 'Producto agregado al carrito' : qty + ' unidades agregadas al carrito');
                     };
                 } else {
                     document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:100px;'>Producto no encontrado</h1>";
@@ -446,5 +542,35 @@
             }
         });
     </script>
+
+    <!-- Sidebar del carrito (mismo markup que index para que script.js lo use) -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <aside class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2 class="cart-title">TU CARRITO</h2>
+            <button class="cart-close" id="cartClose" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div class="cart-empty" id="cartEmpty">
+                <i class="fas fa-shopping-bag"></i>
+                <p>TU CARRITO ESTÁ VACÍO</p>
+                <span>Agrega productos</span>
+            </div>
+        </div>
+        <div class="cart-footer" id="cartFooter" style="display: none;">
+            <div class="cart-total">
+                <span class="cart-total-label">TOTAL:</span>
+                <span class="cart-total-value" id="cartTotal">$0</span>
+            </div>
+            <button class="btn btn-primary btn-block" id="checkoutBtn">
+                <span>FINALIZAR COMPRA</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </aside>
+
+    <script defer src="script.js"></script>
 </body>
 </html>

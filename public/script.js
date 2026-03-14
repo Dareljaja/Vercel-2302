@@ -89,12 +89,35 @@ function renderCollection() {
 window.addToCart = function(productId) {
     const product = products.find(p => p.id == productId);
     if (!product) return;
-    const existing = cart.find(item => item.id === productId);
-    if (existing) { existing.quantity += 1; } 
-    else { cart.push({...product, quantity: 1}); }
+    const existing = cart.find(item => item.id == productId);
+    if (existing) { existing.quantity += 1; }
+    else { cart.push({ ...product, quantity: 1 }); }
     saveCartToStorage();
     updateCartUI();
-}
+};
+
+// Para product-detail: agregar con cantidad y objeto producto (no depende de array products)
+window.addToCartWithQuantity = function(productObj, quantity) {
+    if (!productObj || quantity < 1) return;
+    const id = productObj.id;
+    const existing = cart.find(item => item.id == id);
+    const item = {
+        id: productObj.id,
+        name: productObj.nombre || productObj.name,
+        nombre: productObj.nombre || productObj.name,
+        price: productObj.precio ?? productObj.price,
+        precio: productObj.precio ?? productObj.price,
+        imagen_url: productObj.imagen_url || productObj.image,
+        image: productObj.imagen_url || productObj.image,
+        quantity: 0
+    };
+    if (existing) existing.quantity += quantity;
+    else { item.quantity = quantity; cart.push(item); }
+    saveCartToStorage();
+    updateCartUI();
+};
+
+if (typeof window !== 'undefined') window.refreshCartUI = updateCartUI;
 
 function getItemPrice(item) {
     return Number(item.price ?? item.precio ?? 0);
