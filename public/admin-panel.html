@@ -265,10 +265,12 @@
                 <span id="productsCount" class="success"></span>
             </h2>
             <div id="productsList">
-                <div class="empty-state">
-                    <i class="fas fa-box-open" style="font-size:4rem;opacity:.3;margin-bottom:20px;display:block;"></i>
-                    <h3>No hay productos</h3>
-                    <p>Crea tu primer producto arriba</p>
+                <div class="empty-state" id="productsEmptyState">
+                    <i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;color:#d4af37;"></i>
+                    <p>Cargando productos…</p>
+                    <button type="button" class="btn" id="retryLoadBtn" style="margin-top:16px;display:inline-block;">
+                        <i class="fas fa-sync-alt"></i> Reintentar carga
+                    </button>
                 </div>
             </div>
         </div>
@@ -299,20 +301,44 @@
             }
         }
 
-        // Load products (reintenta una vez si la primera carga falla o viene vacía — cold start Vercel)
+        // Load products: muestra "Cargando...", fetch con timeout, luego tabla o vacío + botón Reintentar
         async function loadProducts() {
+            const container = document.getElementById('productsList');
+            const countEl = document.getElementById('productsCount');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;color:#d4af37;"></i>
+                    <p>Cargando productos…</p>
+                    <button type="button" class="btn" id="retryLoadBtn" style="margin-top:16px;display:inline-block;"><i class="fas fa-sync-alt"></i> Reintentar</button>
+                </div>`;
+            countEl.textContent = '';
+            const retryBtn = document.getElementById('retryLoadBtn');
+            if (retryBtn) retryBtn.addEventListener('click', loadProducts);
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
             try {
-                const res = await fetch('/api/admin/products', { cache: 'no-store' });
+                const res = await fetch('/api/admin/products', { cache: 'no-store', signal: controller.signal });
+                clearTimeout(timeoutId);
                 const data = await safeJson(res);
                 if (!res.ok) throw new Error(data.message || 'Error al cargar');
-                // Aceptar data.products o data si es array
                 const list = Array.isArray(data.products) ? data.products : (Array.isArray(data) ? data : []);
                 products = list;
                 renderProducts();
             } catch (err) {
+                clearTimeout(timeoutId);
                 console.error('Error loading products:', err);
                 products = [];
-                renderProducts();
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle" style="font-size:2rem;margin-bottom:12px;display:block;color:#d4af37;"></i>
+                        <h3>No se pudieron cargar los productos</h3>
+                        <p style="margin-bottom:12px;">${err.message || 'Error de conexión.'}</p>
+                        <button type="button" class="btn" id="retryLoadBtn" style="margin-top:8px;display:inline-block;background:#d4af37;color:#000;"><i class="fas fa-sync-alt"></i> Reintentar carga</button>
+                    </div>`;
+                countEl.textContent = '';
+                document.getElementById('retryLoadBtn').addEventListener('click', loadProducts);
             }
         }
 
@@ -327,10 +353,12 @@
                     <div class="empty-state">
                         <i class="fas fa-box-open" style="font-size:4rem;opacity:.3;margin-bottom:20px;display:block;"></i>
                         <h3>No hay productos</h3>
-                        <p>Crea tu primer producto arriba o revisa que la API responda correctamente (F12 → Red).</p>
-                        <button type="button" class="btn" onclick="loadProducts()" style="margin-top:16px;"><i class="fas fa-sync-alt"></i> Reintentar carga</button>
+                        <p>Crea tu primer producto arriba o pulsa Reintentar si deberían aparecer.</p>
+                        <button type="button" class="btn" id="retryLoadBtn" style="margin-top:16px;display:inline-block;background:#d4af37;color:#000;"><i class="fas fa-sync-alt"></i> Reintentar carga</button>
                     </div>
                 `;
+                const retryBtn = container.querySelector('#retryLoadBtn');
+                if (retryBtn) retryBtn.addEventListener('click', loadProducts);
                 return;
             }
 
@@ -565,11 +593,15 @@ ${products.map(p => {
             }
         });
 
-        // Init: cargar productos y reintentar a los 2s si siguen vacíos (evita cold start de Vercel)
+        window.loadProducts = loadProducts;
+
+        // Init: enlazar botón Reintentar del HTML inicial y cargar productos
+        var initialRetry = document.getElementById('retryLoadBtn');
+        if (initialRetry) initialRetry.addEventListener('click', loadProducts);
         loadProducts();
         setTimeout(function () {
             if (products.length === 0) loadProducts();
-        }, 2000);
+        }, 2500);
     </script>
 </body>
 </html>
