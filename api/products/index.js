@@ -37,8 +37,17 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    // Devolvemos los datos (o un array vacío si no hay nada)
-    return res.status(200).json(data || []);
+    // Mapear columnas en español a name, price, etc. para la web
+    const products = (data || []).map(p => ({
+      ...p,
+      name: p.nombre ?? p.name,
+      price: p.precio ?? p.price,
+      description: p['descripcion completa'] ?? p.descripcion ?? p.description,
+      image: p.imagen_url ?? p.image,
+      category: p.categoria ?? p.category
+    }));
+
+    return res.status(200).json(products);
 
   } catch (error) {
     console.error('Error en el servidor API:', error);
