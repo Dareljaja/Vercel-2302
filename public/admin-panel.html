@@ -236,7 +236,7 @@
                     </div>
                     <div class="form-group">
                         <label>URL de imagen (recomendado)</label>
-                        <input type="url" id="imageUrlInput" placeholder="https://ejemplo.com/imagen.jpg">
+                        <input type="text" id="imageUrlInput" placeholder="https://ejemplo.com/imagen.jpg" autocomplete="url">
                     </div>
 
                     <div class="form-group">
@@ -415,7 +415,12 @@ ${products.map(p => {
                 const data = await safeJson(res);
                 if (!res.ok) throw new Error(data.message);
 
-                alert(editingId ? 'Producto actualizado' : 'Producto creado');
+                const savedImg = (data.product && (data.product.image_url || data.product.imagen_url)) || '';
+                let msg = editingId ? 'Producto actualizado' : 'Producto creado';
+                if (savedImg) msg += '\nImagen guardada: ' + savedImg.substring(0, 70) + (savedImg.length > 70 ? '...' : '');
+                else if (imageUrlInput || uploadUrl) msg += '\n(La URL no se guardó; revisa que la columna en Supabase se llame imagen_url.)';
+                else msg += '\n(Sin URL de imagen.)';
+                alert(msg);
                 
                 // Reset form
                 document.getElementById('productForm').reset();

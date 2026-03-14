@@ -30,6 +30,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Asegurar que req.body esté parseado (Vercel a veces lo deja como string)
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch { body = {}; }
+    }
+    if (body && typeof body === 'object' && !Array.isArray(body)) req.body = body;
+
     if (req.method === 'POST' && (req.body == null || typeof req.body !== 'object')) {
       return res.status(400).json({
         success: false,
@@ -66,11 +73,12 @@ export default async function handler(req, res) {
     } else if (req.method === 'POST') {
       // Create product — columnas en español como en tu tabla Supabase
       const input = req.body;
+      const imagenUrl = sanitizeUrl(input.image_url ?? input.imagen_url);
 
       const product = {
         nombre: sanitize(input.name) || '',
         precio: parseFloat(input.price) || 0,
-        imagen_url: sanitizeUrl(input.image_url),
+        imagen_url: imagenUrl,
         categoria: sanitize(input.category) || 'face',
         tamaño: sanitize(input.size) || '',
         'descripcion corta': sanitize(input.shortDescription) || '',
