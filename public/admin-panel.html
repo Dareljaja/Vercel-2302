@@ -304,7 +304,7 @@
             try {
                 return JSON.parse(text);
             } catch {
-                throw new Error('La API no respondió correctamente. Verifica que el servidor esté activo.');
+                throw new Error('La API no respondió correctamente. Prueba en la URL de Vercel (tu-proyecto.vercel.app), haz Redeploy tras añadir las variables, y revisa que 2302.com.ar esté en Vercel > Domains.');
             }
         }
 

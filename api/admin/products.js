@@ -28,6 +28,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    if (req.method === 'POST' && (req.body == null || typeof req.body !== 'object')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cuerpo de la petición inválido (body vacío o no JSON)'
+      });
+    }
+
     if (req.method === 'GET') {
       // List all products
       const { data: products, error } = await supabaseAdmin
@@ -109,9 +116,10 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Admin products error:', error);
-    res.status(error.statusCode === 401 || error.message.includes('token') ? 401 : 500).json({ 
+    const code = error.statusCode === 401 || (error.message && error.message.includes('token')) ? 401 : 500;
+    return res.status(code).json({ 
       success: false, 
-      message: error.message 
+      message: error.message || 'Error en el servidor'
     });
   }
 }
