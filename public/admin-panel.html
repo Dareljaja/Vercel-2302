@@ -595,13 +595,10 @@ ${products.map(p => {
 
         window.loadProducts = loadProducts;
 
-        // Init: enlazar botón Reintentar del HTML inicial y cargar productos
+        // Init: enlazar botón Reintentar del HTML inicial y cargar productos (sin reintento automático para evitar bucle)
         var initialRetry = document.getElementById('retryLoadBtn');
         if (initialRetry) initialRetry.addEventListener('click', loadProducts);
         loadProducts();
-        setTimeout(function () {
-            if (products.length === 0) loadProducts();
-        }, 2500);
     </script>
 </body>
 </html>
