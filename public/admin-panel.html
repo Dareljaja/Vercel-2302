@@ -417,8 +417,6 @@ ${products.map(p => `
                 document.getElementById('productForm').reset();
                 uploadUrl = '';
                 document.getElementById('imageUrlInput').value = '';
-                document.getElementById('imagePreview').style.display = 'none';
-                document.getElementById('uploadUrl').textContent = '';
                 editingId = null;
                 document.querySelector('#submitBtn i').className = 'fas fa-save';
 
@@ -503,12 +501,6 @@ ${products.map(p => `
             document.getElementById('offer').checked = product.offer;
             
             document.getElementById('imageUrlInput').value = product.image_url || '';
-            if (product.image_url) {
-                uploadUrl = product.image_url;
-                urlDisplay.textContent = product.image_url;
-                preview.src = product.image_url;
-                preview.style.display = 'block';
-            }
 
             document.getElementById('submitBtn').innerHTML = '<i class="fas fa-sync"></i> Actualizar Producto';
             document.getElementById('name').focus();
