@@ -36,15 +36,15 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      // List all products
+      // List all products (ordenar por id por si la tabla no tiene created_at)
       const { data: products, error } = await supabaseAdmin
         .from('productos')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('id', { ascending: false });
 
       if (error) throw error;
 
-      res.status(200).json({ success: true, products });
+      return res.status(200).json({ success: true, products: products || [] });
 
     } else if (req.method === 'POST') {
       // Create product
@@ -116,11 +116,13 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Admin products error:', error);
-    const code = error.statusCode === 401 || (error.message && error.message.includes('token')) ? 401 : 500;
-    return res.status(code).json({ 
-      success: false, 
-      message: error.message || 'Error en el servidor'
-    });
+    const msg = (error && (error.message || error.toString)) ? (error.message || error.toString()) : 'Error en el servidor';
+    const code = (error && error.statusCode === 401) || (typeof msg === 'string' && msg.includes('token')) ? 401 : 500;
+    try {
+      return res.status(code).json({ success: false, message: msg });
+    } catch (e) {
+      console.error('Failed to send error response', e);
+    }
   }
 }
 
