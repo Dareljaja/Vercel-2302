@@ -288,42 +288,7 @@
         </div>
     </aside>
 
-    <script defer src="/script.js"></script>
-
-                    </div>
-                </article>
-            `;
-
-            // Llenamos ambas secciones (puedes filtrar si prefieres)
-            if(grid) grid.innerHTML += productHTML;
-            if(collectionGrid) collectionGrid.innerHTML += productHTML;
-        });
-
-        // 3. Reconectar los botones del carrito
-        configurarBotonesCarrito();
-    }
-
-    // Función para que los botones dinámicos funcionen con tu script.js
-    function configurarBotonesCarrito() {
-        document.querySelectorAll('.add-to-cart').forEach(boton => {
-            boton.onclick = function() {
-                const id = this.getAttribute('data-id');
-                const nombre = this.getAttribute('data-nombre');
-                const precio = parseFloat(this.getAttribute('data-precio'));
-                
-                // Llamamos a la función addToCart que está en tu script.js
-                if (typeof window.addToCart === 'function') {
-                    window.addToCart(id, nombre, precio);
-                } else {
-                    console.log("Agregado:", nombre, "$", precio);
-                    // Si tu script.js no es global, aquí podrías disparar un evento
-                }
-            };
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', cargarProductos);
-</script>
+    <script defer src="script.js"></script>
 </body>
 </html>
 

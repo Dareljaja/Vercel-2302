@@ -51,7 +51,7 @@ function renderProducts(productsToRender) {
                 <span class="product-category">${product.category}</span>
                 <h3 class="product-name">${product.name || product.nombre}</h3>
                 <p class="product-price">$${product.price || product.precio}</p>
-                <button class="product-btn" onclick="event.stopPropagation(); addToCart(${product.id})">
+                <button class="product-btn" onclick="event.stopPropagation(); addToCart(${JSON.stringify(product.id)})">
                     AGREGAR AL CARRITO
                 </button>
             </div>

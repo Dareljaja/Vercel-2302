@@ -6,7 +6,19 @@
       "destination": "/api/products/index.js"
     },
     {
-      "source": "/(.*)",
+      "source": "/api/login",
+      "destination": "/api/login.js"
+    },
+    {
+      "source": "/api/admin/products",
+      "destination": "/api/admin/products.js"
+    },
+    {
+      "source": "/api/admin/upload",
+      "destination": "/api/admin/upload.js"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/public/$1"
     }
   ]
