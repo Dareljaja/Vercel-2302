@@ -727,6 +727,61 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--bg-primary);
 }
 
+.product-btn:active {
+    transform: scale(0.97);
+}
+
+/* Estado "agregado" en página principal (mismo efecto que product-detail) */
+.product-btn.added {
+    background: linear-gradient(135deg, #2d8a4e 0%, #1e6b3a 100%) !important;
+    border-color: #2d8a4e !important;
+    color: #fff !important;
+    animation: cartAdded 0.5s ease;
+}
+.product-btn.added i {
+    animation: checkPop 0.4s ease 0.1s both;
+}
+@keyframes cartAdded {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(45, 138, 78, 0.5); }
+    50% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(45, 138, 78, 0); }
+    100% { transform: scale(1); box-shadow: 0 4px 20px rgba(45, 138, 78, 0.35); }
+}
+@keyframes checkPop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Toast de confirmación al agregar al carrito (página principal) */
+.cart-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: linear-gradient(135deg, rgba(45, 138, 78, 0.95) 0%, rgba(30, 107, 58, 0.95) 100%);
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 9999;
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    pointer-events: none;
+}
+.cart-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+.cart-toast i {
+    font-size: 1.2rem;
+}
+
 /* ============================================
    COLLECTION SECTION
    ============================================ */
