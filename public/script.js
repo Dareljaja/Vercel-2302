@@ -52,7 +52,7 @@ function renderProducts(productsToRender) {
         return `
         <article class="product-card" onclick="window.location.href='product-detail.html?id=${product.id}'">
             <div class="product-image">
-                <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${product.name || ''}" loading="lazy" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG||'${PLACEHOLDER_IMG}';">
+                <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${(product.name || '').replace(/"/g, '&quot;')}" loading="lazy" crossorigin="anonymous" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;">
             </div>
             <div class="product-content">
                 <span class="product-category">${product.category}</span>
@@ -75,7 +75,7 @@ function renderCollection() {
         const imgUrl = product.imagen_url || product.image;
         return `
         <article class="collection-item" onclick="window.location.href='product-detail.html?id=${product.id}'">
-            <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${product.name || ''}" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG||'${PLACEHOLDER_IMG}';">
+            <img src="${imgUrl || PLACEHOLDER_IMG}" alt="${(product.name || '').replace(/"/g, '&quot;')}" crossorigin="anonymous" onerror="this.onerror=null;this.src=window.PLACEHOLDER_IMG;">
             <div class="collection-overlay">
                 <h3 class="collection-title">${product.name}</h3>
                 <span class="collection-price">$${product.price}</span>
