@@ -235,7 +235,11 @@
                         <textarea id="howToUse" rows="2"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Imagen</label>
+                        <label>URL de imagen (recomendado)</label>
+                        <input type="url" id="imageUrlInput" placeholder="https://ejemplo.com/imagen.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>O subir archivo</label>
                         <div class="upload-area" id="uploadArea">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Arrastra imagen o haz click</p>
@@ -295,12 +299,21 @@
         let editingId = null;
         let uploadUrl = '';
 
+        async function safeJson(res) {
+            const text = await res.text();
+            try {
+                return JSON.parse(text);
+            } catch {
+                throw new Error('La API no respondió correctamente. Verifica que el servidor esté activo.');
+            }
+        }
+
         // Load products
         async function loadProducts() {
             try {
                 const res = await fetch('/api/admin/products');
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message);
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al cargar');
                 
                 products = data.products || [];
                 renderProducts();
@@ -383,6 +396,7 @@
             document.body.classList.add('loading');
 
             try {
+                const imageUrlInput = document.getElementById('imageUrlInput').value?.trim();
                 const productData = {
                     name: document.getElementById('name').value,
                     price: document.getElementById('price').value,
@@ -392,7 +406,7 @@
                     size: document.getElementById('size').value,
                     ingredients: document.getElementById('ingredients').value,
                     howToUse: document.getElementById('howToUse').value,
-                    image_url: uploadUrl,
+                    image_url: imageUrlInput || uploadUrl || '',
                     popular: document.getElementById('popular').checked,
                     offer: document.getElementById('offer').checked
                 };
@@ -403,7 +417,7 @@
                     body: JSON.stringify(editingId ? { id: editingId, ...productData } : productData)
                 });
 
-                const data = await res.json();
+                const data = await safeJson(res);
                 if (!res.ok) throw new Error(data.message);
 
                 alert(editingId ? 'Producto actualizado' : 'Producto creado');
@@ -411,6 +425,7 @@
                 // Reset form
                 document.getElementById('productForm').reset();
                 uploadUrl = '';
+                document.getElementById('imageUrlInput').value = '';
                 document.getElementById('imagePreview').style.display = 'none';
                 document.getElementById('uploadUrl').textContent = '';
                 editingId = null;
@@ -465,7 +480,7 @@
                     body: formData
                 });
 
-                const data = await res.json();
+                const data = await safeJson(res);
                 if (!res.ok) throw new Error(data.message);
 
                 uploadUrl = data.url;
@@ -473,7 +488,7 @@
                 preview.src = URL.createObjectURL(file);
                 preview.style.display = 'block';
             } catch (err) {
-                alert('Upload error: ' + err.message);
+                alert('Error al subir: ' + err.message + '\n\nUsa "URL de imagen" para pegar un enlace directo a la imagen.');
             }
         }
 
@@ -496,9 +511,10 @@
             document.getElementById('popular').checked = product.popular;
             document.getElementById('offer').checked = product.offer;
             
+            document.getElementById('imageUrlInput').value = product.image_url || '';
             if (product.image_url) {
                 uploadUrl = product.image_url;
-                urlDisplay.textContent = `URL: ${product.image_url}`;
+                urlDisplay.textContent = product.image_url;
                 preview.src = product.image_url;
                 preview.style.display = 'block';
             }
@@ -514,7 +530,7 @@
                 const res = await fetch(`/api/admin/products?id=${id}`, {
                     method: 'DELETE'
                 });
-                const data = await res.json();
+                const data = await safeJson(res);
                 if (!res.ok) throw new Error(data.message);
 
                 loadProducts();
