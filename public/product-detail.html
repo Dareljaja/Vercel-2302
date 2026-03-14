@@ -418,8 +418,24 @@
                     img.style.display = 'block';
                     document.getElementById('loading-img').style.display = 'none';
 
-                    // Configurar botón de carrito
+                    // Configurar botón de carrito (guardar en localStorage igual que index)
                     document.getElementById('add-btn').onclick = () => {
+                        const cartKey = '2302_cart';
+                        const cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+                        const existing = cart.find(item => String(item.id) === String(product.id));
+                        const cartProduct = {
+                            id: product.id,
+                            name: product.nombre || product.name,
+                            nombre: product.nombre || product.name,
+                            price: product.precio ?? product.price,
+                            precio: product.precio ?? product.price,
+                            imagen_url: product.imagen_url || product.image,
+                            image: product.imagen_url || product.image,
+                            quantity: 1
+                        };
+                        if (existing) existing.quantity += 1;
+                        else cart.push({ ...cartProduct, quantity: 1 });
+                        localStorage.setItem(cartKey, JSON.stringify(cart));
                         alert('Producto agregado al carrito');
                     };
                 } else {
