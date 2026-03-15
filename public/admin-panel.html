@@ -671,6 +671,7 @@
                                         <button type="button" class="btn btn-sm ${estado === 'pagado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'pagado')" title="Cliente pagó">Pagado</button>
                                         <button type="button" class="btn btn-sm ${estado === 'enviado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'enviado')" title="Enviado">Enviado</button>
                                         <button type="button" class="btn btn-sm btn-danger ${estado === 'cancelado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'cancelado')" title="Cancelar compra">Cancelar</button>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteOrder('${String(o.id).replace(/'/g, "\\'")}')" title="Eliminar pedido"><i class="fas fa-trash"></i></button>
                                     </div>
                                 </td>
                             </tr>`;
@@ -693,6 +694,22 @@
                 renderOrders();
             } catch (err) {
                 alert('Error: ' + (err.message || 'No se pudo actualizar el estado'));
+            }
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) return;
+            try {
+                const res = await fetch('/api/orders?id=' + encodeURIComponent(orderId), {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al eliminar');
+                ordersList = ordersList.filter(o => o.id != orderId && String(o.id) !== String(orderId));
+                renderOrders();
+            } catch (err) {
+                alert('Error: ' + (err.message || 'No se pudo eliminar el pedido'));
             }
         }
 

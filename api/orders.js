@@ -14,7 +14,7 @@ const ESTADOS = ['pendiente_pago', 'pagado', 'enviado', 'cancelado'];
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
@@ -92,8 +92,8 @@ export default async function handler(req, res) {
     }
   }
 
-  // GET y PATCH: requieren autenticación admin
-  if (req.method === 'GET' || req.method === 'PATCH') {
+  // GET, PATCH y DELETE: requieren autenticación admin
+  if (req.method === 'GET' || req.method === 'PATCH' || req.method === 'DELETE') {
     if (!requireAuth(req, res)) return;
     if (!supabase) {
       return res.status(500).json({ success: false, message: 'Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY' });
@@ -165,6 +165,23 @@ export default async function handler(req, res) {
           total: data.total
         }
       });
+    }
+
+    // DELETE: eliminar pedido (admin)
+    if (req.method === 'DELETE') {
+      const id = req.query?.id;
+      if (id == null || id === '') {
+        return res.status(400).json({ success: false, message: 'Falta id del pedido' });
+      }
+
+      const { error } = await supabase
+        .from('pedidos')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      return res.status(200).json({ success: true, message: 'Pedido eliminado' });
     }
 
     return res.status(405).json({ success: false, message: 'Método no permitido' });
