@@ -62,6 +62,7 @@ export default async function handler(req, res) {
         howToUse: p['modo de uso'] ?? p['mododeuso'] ?? p.howToUse,
         popular: p.popular ?? false,
         offer: p.offer ?? false,
+        precio_oferta: p.precio_oferta != null ? Number(p.precio_oferta) : null,
         showDescription: vis.showDescription !== false,
         showShortDescription: vis.showShortDescription !== false,
         showSize: vis.showSize !== false,

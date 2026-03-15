@@ -322,6 +322,11 @@
                                 <label for="offer">En oferta especial</label>
                             </div>
                         </div>
+                        <div class="form-group" id="offerPriceWrap" style="margin-top: 10px; display: none;">
+                            <label for="precioOferta">Precio de oferta ($) *</label>
+                            <input type="number" id="precioOferta" step="0.01" min="0" placeholder="Ej: 4500">
+                            <p class="form-hint">Si está en oferta, acá va el precio rebajado. En la tienda se verá el precio normal tachado y este como precio final.</p>
+                        </div>
                         <p class="form-hint" style="margin-top: 8px;">Categoría y Tamaño (arriba) también generan un check.</p>
                     </div>
                     <div class="form-group">
@@ -854,6 +859,8 @@ ${products.map(p => {
 
             try {
                 const imageUrlInput = document.getElementById('imageUrlInput').value?.trim();
+                const offerChecked = document.getElementById('offer').checked;
+                const precioOfertaVal = document.getElementById('precioOferta').value;
                 const productData = {
                     name: document.getElementById('name').value,
                     price: document.getElementById('price').value,
@@ -865,7 +872,8 @@ ${products.map(p => {
                     howToUse: document.getElementById('howToUse').value,
                     image_url: imageUrlInput || uploadUrl || '',
                     popular: document.getElementById('popular').checked,
-                    offer: document.getElementById('offer').checked,
+                    offer: offerChecked,
+                    precio_oferta: offerChecked && precioOfertaVal !== '' ? parseFloat(precioOfertaVal) : null,
                     showDescription: document.getElementById('showDescription').checked,
                     showShortDescription: document.getElementById('showShortDescription').checked,
                     showSize: document.getElementById('showSize').checked,
@@ -915,6 +923,11 @@ ${products.map(p => {
                 btn.disabled = false;
                 document.body.classList.remove('loading');
             }
+        });
+
+        // Mostrar/ocultar precio de oferta al marcar "En oferta especial"
+        document.getElementById('offer').addEventListener('change', function() {
+            document.getElementById('offerPriceWrap').style.display = this.checked ? 'block' : 'none';
         });
 
         // Image upload
@@ -1001,6 +1014,8 @@ ${products.map(p => {
             document.getElementById('howToUse').value = product.howToUse;
             document.getElementById('popular').checked = product.popular || false;
             document.getElementById('offer').checked = product.offer || false;
+            document.getElementById('offerPriceWrap').style.display = product.offer ? 'block' : 'none';
+            document.getElementById('precioOferta').value = (product.precio_oferta != null && product.precio_oferta !== '') ? product.precio_oferta : '';
             document.getElementById('showDescription').checked = product.showDescription !== false;
             document.getElementById('showShortDescription').checked = product.showShortDescription !== false;
             document.getElementById('showSize').checked = product.showSize !== false;
