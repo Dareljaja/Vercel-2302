@@ -153,6 +153,7 @@
                         <button type="submit" class="btn btn-whatsapp" id="btnEnviar">
                             <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
                         </button>
+                        <div id="checkoutSaveStatus" style="min-height:22px;margin-top:10px;font-size:0.9rem;"></div>
                         <a href="index.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Seguir comprando</a>
                         <a href="#" id="vaciarCarrito" style="color:#888;font-size:0.85rem;margin-top:8px;">Vaciar carrito y volver</a>
                     </div>
@@ -229,7 +230,9 @@
                         subtotal: subtotal
                     };
                 });
-                const apiUrl = (window.location.origin || '').replace(/\/$/, '') + '/api/orders';
+                var statusEl = document.getElementById('checkoutSaveStatus');
+                if (statusEl) statusEl.innerHTML = '<span style="color:#c9a962;">Guardando pedido…</span>';
+                var apiUrl = (window.location.origin || '').replace(/\/$/, '') + '/api/orders';
                 fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -245,20 +248,25 @@
                         total: totalActual
                     })
                 }).then(function(r) {
-                    return r.json().then(function(data) {
-                        if (!r.ok) {
-                            console.error('Error al guardar pedido:', data.message || r.status);
-                            alert('El pedido se envió a WhatsApp pero no se guardó en el sistema. Revisá la consola (F12) para más detalles.');
+                    var contentType = r.headers.get('Content-Type') || '';
+                    var bodyPromise = contentType.indexOf('json') >= 0 ? r.json() : r.text().then(function(t) { try { return JSON.parse(t); } catch (e) { return { message: t || 'Error ' + r.status }; } });
+                    return bodyPromise.then(function(data) {
+                        if (r.ok) {
+                            if (statusEl) statusEl.innerHTML = '<span style="color:#28a745;">Pedido guardado. Aparece en Admin → Ventas / Pedidos.</span>';
+                            return data;
                         }
+                        var msg = (data && data.message) || ('Error ' + r.status);
+                        if (statusEl) statusEl.innerHTML = '<span style="color:#e74c3c;">No se guardó: ' + msg + '</span>';
+                        console.error('Error al guardar pedido:', msg);
                         return data;
                     });
                 }).catch(function(err) {
+                    if (statusEl) statusEl.innerHTML = '<span style="color:#e74c3c;">No se pudo conectar. Probá desde la URL de Vercel (no localhost).</span>';
                     console.error('Error de red al guardar pedido:', err);
-                    alert('No se pudo conectar con el servidor. ¿Estás probando en la URL desplegada de Vercel? (No en localhost ni XAMPP)');
                 });
 
                 // Abrir WhatsApp con el mensaje ya escrito (wa.me/NUMERO?text= es el formato que muestra el mensaje)
-                const url = 'https://wa.me/' + WHATSAPP_PHONE + '?text=' + encodeURIComponent(msg);
+                var url = 'https://wa.me/' + WHATSAPP_PHONE + '?text=' + encodeURIComponent(msg);
                 window.open(url, '_blank', 'noopener');
             });
         })();

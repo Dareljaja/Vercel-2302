@@ -666,9 +666,9 @@
                                 <td><span class="badge ${estadoClass[estado] || 'badge-pendiente'}">${estadoLabel[estado] || estado}</span></td>
                                 <td>
                                     <div class="orders-status-btns">
-                                        <button type="button" class="btn btn-sm ${estado === 'pendiente_pago' ? 'btn-secondary' : ''}" onclick="setOrderStatus(${o.id}, 'pendiente_pago')" title="Pendiente de pago">Pendiente</button>
-                                        <button type="button" class="btn btn-sm ${estado === 'pagado' ? 'btn-secondary' : ''}" onclick="setOrderStatus(${o.id}, 'pagado')" title="Cliente pagó">Pagado</button>
-                                        <button type="button" class="btn btn-sm ${estado === 'enviado' ? 'btn-secondary' : ''}" onclick="setOrderStatus(${o.id}, 'enviado')" title="Enviado">Enviado</button>
+                                        <button type="button" class="btn btn-sm ${estado === 'pendiente_pago' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'pendiente_pago')" title="Pendiente de pago">Pendiente</button>
+                                        <button type="button" class="btn btn-sm ${estado === 'pagado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'pagado')" title="Cliente pagó">Pagado</button>
+                                        <button type="button" class="btn btn-sm ${estado === 'enviado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'enviado')" title="Enviado">Enviado</button>
                                     </div>
                                 </td>
                             </tr>`;
