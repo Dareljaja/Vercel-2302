@@ -2,11 +2,14 @@
  * Webhook de Mercado Pago: cuando un pago se aprueba, actualiza el pedido en Supabase a "pagado".
  * Configura en tu cuenta MP: Integraciones > Webhooks > URL: https://tu-dominio.vercel.app/api/webhook-mercadopago
  * Eventos: pagos (payment).
+ * Verificación de origen con x-signature y MERCADOPAGO_WEBHOOK_SECRET.
  */
+import crypto from 'crypto';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { createClient } from '@supabase/supabase-js';
 
 const accessToken = process.env.MERCADOPAGO_TOKEN;
+const webhookSecret = process.env.MERCADOPAGO_WEBHOOK_SECRET || '';
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -15,8 +18,34 @@ function getSupabase() {
   return createClient(supabaseUrl, supabaseKey, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
+/** Verifica la firma x-signature de Mercado Pago (HMAC SHA256). Devuelve true si es válida o si no hay secret. */
+function verifyWebhookSignature(req, id) {
+  if (!webhookSecret) return true;
+  const xSignature = req.headers['x-signature'] || req.headers['X-Signature'];
+  const xRequestId = req.headers['x-request-id'] || req.headers['X-Request-Id'];
+  if (!xSignature || !xRequestId) {
+    console.warn('Webhook MP: falta x-signature o x-request-id');
+    return false;
+  }
+  let ts = '';
+  let hash = '';
+  const parts = xSignature.split(',');
+  for (const part of parts) {
+    const [key, value] = part.split('=').map((s) => s.trim());
+    if (key === 'ts') ts = value || '';
+    else if (key === 'v1') hash = value || '';
+  }
+  if (!ts || !hash) {
+    console.warn('Webhook MP: x-signature sin ts o v1');
+    return false;
+  }
+  const dataIdLower = String(id || '').toLowerCase();
+  const manifest = `id:${dataIdLower};request-id:${xRequestId};ts:${ts};`;
+  const computed = crypto.createHmac('sha256', webhookSecret).update(manifest).digest('hex');
+  return computed === hash;
+}
+
 export default async function handler(req, res) {
-  // Mercado Pago envía por POST (body) o a veces por GET (query): topic e id (id del pago)
   const isPost = req.method === 'POST';
   const isGet = req.method === 'GET';
   if (!isPost && !isGet) {
@@ -24,13 +53,13 @@ export default async function handler(req, res) {
   }
 
   let topic = req.query?.topic || req.body?.topic;
-  let id = req.query?.id ?? req.body?.data?.id ?? req.body?.id;
+  let id = req.query?.id ?? req.query?.['data.id'] ?? req.body?.data?.id ?? req.body?.id;
 
   if (isPost && !id && typeof req.body === 'string') {
     try {
       const parsed = new URLSearchParams(req.body);
       topic = topic || parsed.get('topic');
-      id = id || parsed.get('id');
+      id = id || parsed.get('id') || parsed.get('data.id');
     } catch (_) {}
   }
 
@@ -39,6 +68,11 @@ export default async function handler(req, res) {
   }
 
   if (topic !== 'payment') {
+    return res.status(200).send('OK');
+  }
+
+  if (webhookSecret && !verifyWebhookSignature(req, id)) {
+    console.warn('Webhook MP: firma inválida, se ignora la notificación');
     return res.status(200).send('OK');
   }
 
