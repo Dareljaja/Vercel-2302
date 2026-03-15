@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 
     // Mapear columnas en español a name, price, image, etc. para la web
     const defaultVis = () => ({ showDescription: true, showShortDescription: true, showSize: true, showIngredients: true, showHowToUse: true });
-    const products = (data || []).map(p => {
+    const products = (data || []).filter(p => p != null).map(p => {
       const imageUrl = p.imagen_url ?? p.image ?? '';
       const vis = p.section_visibility && typeof p.section_visibility === 'object' ? p.section_visibility : defaultVis();
       return {
