@@ -251,13 +251,15 @@
                         })
                     });
                     var prefData = await prefRes.json().catch(function() { return {}; });
-                    if (!prefRes.ok || !prefData.init_point) {
-                        statusEl.innerHTML = '<span style="color:#e74c3c;">' + (prefData.error || 'Error al crear link de pago') + '</span>';
+                    if (!prefRes.ok || !(prefData && prefData.init_point)) {
+                        var errMsg = (prefData && typeof prefData.error === 'string') ? prefData.error : 'Error al crear link de pago. Revisá que MERCADOPAGO_TOKEN esté configurado en Vercel.';
+                        if (statusEl) statusEl.innerHTML = '<span style="color:#e74c3c;">' + String(errMsg).replace(/</g, '&lt;') + '</span>';
                         return;
                     }
                     window.location.href = prefData.init_point;
                 } catch (err) {
-                    if (statusEl) statusEl.innerHTML = '<span style="color:#e74c3c;">Error de conexión. Probá de nuevo.</span>';
+                    var msg = (err && err.message) ? err.message : 'Error de conexión. Probá de nuevo.';
+                    if (statusEl) statusEl.innerHTML = '<span style="color:#e74c3c;">' + String(msg).replace(/</g, '&lt;') + '</span>';
                     console.error(err);
                 }
             });

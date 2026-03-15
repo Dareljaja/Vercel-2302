@@ -51,14 +51,20 @@ export default async function handler(req, res) {
     }
 
     const response = await new Preference(client).create({ body });
+    const result = response?.body ?? response;
+    if (!result || (result.id == null && result.init_point == null)) {
+      console.error('Mercado Pago preference response:', response);
+      return res.status(500).json({ success: false, error: 'Mercado Pago no devolvió link de pago' });
+    }
     res.json({
       success: true,
-      preference_id: response.body.id,
-      init_point: response.body.init_point,
-      sandbox_init_point: response.body.sandbox_init_point
+      preference_id: result.id,
+      init_point: result.init_point ?? result.sandbox_init_point ?? '',
+      sandbox_init_point: result.sandbox_init_point ?? ''
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('create-preference error:', error);
+    const message = error?.message ?? String(error);
+    res.status(500).json({ success: false, error: message });
   }
 }
