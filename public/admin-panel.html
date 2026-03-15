@@ -538,7 +538,7 @@
                     window.location.href = '/admin.html';
                     return;
                 }
-                categories = Array.isArray(data.categories) ? data.categories : [];
+                categories = Array.isArray(data.categories) ? data.categories.filter(Boolean) : [];
                 var catOptions = '<option value="">— Sin enlace —</option>' + categories.map(function(c) { return '<option value="' + (c.slug || '').replace(/"/g, '&quot;') + '">' + (c.nombre || c.slug || '').replace(/</g, '&lt;') + '</option>'; }).join('');
                 if (sel) {
                     sel.innerHTML = '<option value="">— Seleccionar —</option>' + categories.map(function(c) { return '<option value="' + (c.slug || '').replace(/"/g, '&quot;') + '">' + (c.nombre || c.slug || '').replace(/</g, '&lt;') + '</option>'; }).join('');
@@ -552,7 +552,7 @@
                         listEl.innerHTML = '<div class="empty-state"><p>No hay categorías. Agrega una arriba.</p></div>';
                     } else {
                         listEl.innerHTML = '<table class="products-table"><thead><tr><th>Nombre</th><th>Slug</th><th>Acciones</th></tr></thead><tbody>' +
-                            categories.map(c => '<tr><td>' + (c.nombre || '—').replace(/</g, '&lt;') + '</td><td><code>' + (c.slug || '—').replace(/</g, '&lt;') + '</code></td><td><button type="button" class="btn btn-danger btn-sm delete-cat-btn" data-id="' + c.id + '"><i class="fas fa-trash"></i> Quitar</button></td></tr>').join('') +
+                            categories.map(c => c ? '<tr><td>' + (c.nombre || '—').replace(/</g, '&lt;') + '</td><td><code>' + (c.slug || '—').replace(/</g, '&lt;') + '</code></td><td><button type="button" class="btn btn-danger btn-sm delete-cat-btn" data-id="' + (c.id ?? '') + '"><i class="fas fa-trash"></i> Quitar</button></td></tr>' : '').filter(Boolean).join('') +
                             '</tbody></table>';
                     }
                 }
@@ -622,7 +622,7 @@
                     window.location.href = '/admin.html';
                     return;
                 }
-                ordersList = Array.isArray(data.orders) ? data.orders : [];
+                ordersList = Array.isArray(data.orders) ? data.orders.filter(Boolean) : [];
                 renderOrders();
             } catch (err) {
                 console.error('Load orders:', err);
@@ -761,7 +761,7 @@
                     throw new Error(data.message || 'Error al cargar');
                 }
                 const list = Array.isArray(data.products) ? data.products : (Array.isArray(data) ? data : []);
-                products = list;
+                products = list.filter(Boolean);
                 renderProducts();
             } catch (err) {
                 clearTimeout(timeoutId);
@@ -1118,7 +1118,7 @@ ${products.map(p => {
                     window.location.href = '/admin.html';
                     return;
                 }
-                collectionItems = Array.isArray(data.items) ? data.items : [];
+                collectionItems = Array.isArray(data.items) ? data.items.filter(Boolean) : [];
                 renderCollection();
             } catch (err) {
                 console.error('Load collection:', err);

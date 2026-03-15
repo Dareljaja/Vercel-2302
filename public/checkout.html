@@ -221,10 +221,10 @@
                     });
                     var orderData = await orderRes.json().catch(function() { return {}; });
                     if (!orderRes.ok) {
-                        statusEl.innerHTML = '<span style="color:#e74c3c;">' + (orderData.message || 'Error al guardar pedido') + '</span>';
+                        statusEl.innerHTML = '<span style="color:#e74c3c;">' + (orderData && orderData.message || 'Error al guardar pedido') + '</span>';
                         return;
                     }
-                    var orderId = orderData.id;
+                    var orderId = orderData && orderData.id;
                     if (!orderId) {
                         statusEl.innerHTML = '<span style="color:#e74c3c;">No se recibió ID del pedido.</span>';
                         return;
