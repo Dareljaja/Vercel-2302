@@ -188,15 +188,15 @@
                 if (!direccion) { document.getElementById('err-direccion').textContent = 'Ingresá la dirección.'; valid = false; }
                 if (!localidad) { document.getElementById('err-localidad').textContent = 'Ingresá localidad/ciudad.'; valid = false; }
                 if (!valid) return;
-                const cartActual = getCart();
+                var cartActual = getCart().filter(function(item) { return item && item.id != null && item.id !== ''; });
                 if (cartActual.length === 0) {
-                    alert('El carrito está vacío.');
+                    alert('El carrito está vacío o tiene ítems inválidos.');
                     return;
                 }
                 let totalActual = 0;
                 const itemsPayload = cartActual.map(function(item) {
                     const price = getPrice(item);
-                    const subtotal = price * item.quantity;
+                    const subtotal = price * (item.quantity || 0);
                     totalActual += subtotal;
                     return { nombre: getName(item), cantidad: item.quantity, precio: price, subtotal: subtotal };
                 });
@@ -231,15 +231,16 @@
                     }
                     statusEl.innerHTML = '<span style="color:#c9a962;">Redirigiendo a Mercado Pago…</span>';
                     var prefItems = cartActual.map(function(item) {
+                        if (!item || item.id == null) return null;
                         var p = getPrice(item);
                         return {
-                            id: item.id,
+                            id: String(item.id),
                             name: getName(item),
-                            quantity: item.quantity,
+                            quantity: Number(item.quantity) || 1,
                             price: p,
                             image: getImg(item)
                         };
-                    });
+                    }).filter(Boolean);
                     var prefRes = await fetch(apiBase + '/api/create-preference', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },

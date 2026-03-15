@@ -17,15 +17,17 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No items provided' });
     }
 
-    const items = input.items.map(item => ({
-      id: String(item.id || ''),
-      title: item.name || 'Producto',
-      description: item.description || '',
-      quantity: Number(item.quantity) || 1,
-      unit_price: parseFloat(item.price) || 0,
-      currency_id: 'ARS',
-      picture_url: item.image || ''
-    }));
+    const items = (input.items || [])
+      .filter((item) => item != null)
+      .map((item) => ({
+        id: String(item.id != null ? item.id : ''),
+        title: (item.name ?? 'Producto').toString(),
+        description: (item.description ?? '').toString(),
+        quantity: Number(item.quantity) || 1,
+        unit_price: parseFloat(item.price) || 0,
+        currency_id: 'ARS',
+        picture_url: (item.image ?? '').toString()
+      }));
 
     const body = {
       items,
