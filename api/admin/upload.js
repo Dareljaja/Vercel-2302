@@ -1,5 +1,5 @@
 import { put } from '@vercel/blob';
-import { requireAuth } from './auth.js';
+import { requireAuth } from '../../lib/auth.js';
 import busboy from 'busboy';
 
 export default async function handler(req, res) {
