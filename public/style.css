@@ -811,6 +811,11 @@ h1, h2, h3, h4, h5, h6 {
     text-decoration: line-through;
 }
 
+.product-price-current {
+    font-weight: 600;
+    color: var(--accent);
+}
+
 .product-btn {
     width: 100%;
     padding: 14px 20px;

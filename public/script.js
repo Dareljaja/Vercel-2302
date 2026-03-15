@@ -131,7 +131,12 @@ function buildProductCardsHTML(productsToRender) {
         const imgUrl = product.imagen_url || product.image;
         const name = product.name || product.nombre || '';
         const category = product.category || product.categoria || '';
-        const price = product.price ?? product.precio ?? 0;
+        const priceOriginal = product.price ?? product.precio ?? 0;
+        const isOffer = product.offer && (product.precio_oferta != null && product.precio_oferta !== '');
+        const priceShow = isOffer ? Number(product.precio_oferta) : priceOriginal;
+        const priceBlock = isOffer
+            ? '<p class="product-price"><span class="product-price-original">$' + Number(priceOriginal).toLocaleString() + '</span> <span class="product-price-current">$' + Number(priceShow).toLocaleString() + '</span></p>'
+            : '<p class="product-price">$' + Number(priceShow).toLocaleString() + '</p>';
         return `
         <article class="product-card" onclick="window.location.href='product-detail.html?id=${product.id}'">
             <div class="product-image">
@@ -140,7 +145,7 @@ function buildProductCardsHTML(productsToRender) {
             <div class="product-content">
                 <span class="product-category">${category}</span>
                 <h3 class="product-name">${name}</h3>
-                <p class="product-price">$${price}</p>
+                ${priceBlock}
                 <button class="product-btn" onclick="event.stopPropagation(); addToCart(${JSON.stringify(product.id)}, event)">
                     AGREGAR AL CARRITO
                 </button>
@@ -199,9 +204,10 @@ function renderProducts(productsToRender) {
 window.addToCart = function(productId, ev) {
     const product = products.find(p => p.id == productId);
     if (!product) return;
+    const effectivePrice = (product.offer && product.precio_oferta != null && product.precio_oferta !== '') ? Number(product.precio_oferta) : Number(product.price ?? product.precio ?? 0);
     const existing = cart.find(item => item.id == productId);
     if (existing) { existing.quantity += 1; }
-    else { cart.push({ ...product, quantity: 1 }); }
+    else { cart.push({ ...product, price: effectivePrice, precio: effectivePrice, quantity: 1 }); }
     saveCartToStorage();
     updateCartUI();
 
@@ -227,13 +233,14 @@ window.addToCart = function(productId, ev) {
 window.addToCartWithQuantity = function(productObj, quantity) {
     if (!productObj || quantity < 1) return;
     const id = productObj.id;
+    const effectivePrice = (productObj.offer && productObj.precio_oferta != null && productObj.precio_oferta !== '') ? Number(productObj.precio_oferta) : Number(productObj.precio ?? productObj.price ?? 0);
     const existing = cart.find(item => item.id == id);
     const item = {
         id: productObj.id,
         name: productObj.nombre || productObj.name,
         nombre: productObj.nombre || productObj.name,
-        price: productObj.precio ?? productObj.price,
-        precio: productObj.precio ?? productObj.price,
+        price: effectivePrice,
+        precio: effectivePrice,
         imagen_url: productObj.imagen_url || productObj.image,
         image: productObj.imagen_url || productObj.image,
         quantity: 0

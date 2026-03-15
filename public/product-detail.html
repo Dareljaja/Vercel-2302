@@ -628,9 +628,20 @@
                         document.getElementById('p-subtitle').style.display = 'none';
                     }
                     
-                    // Precio
-                    const price = Number(product.precio || product.price || 0);
-                    document.getElementById('p-price').textContent = `$${price.toLocaleString()}`;
+                    // Precio (si está en oferta: precio tachado + precio oferta)
+                    const priceOriginal = Number(product.precio || product.price || 0);
+                    const isOffer = product.offer && (product.precio_oferta != null && product.precio_oferta !== '');
+                    const priceShow = isOffer ? Number(product.precio_oferta) : priceOriginal;
+                    const priceOriginalEl = document.getElementById('price-original');
+                    if (priceOriginalEl) {
+                        if (isOffer) {
+                            priceOriginalEl.textContent = `$${priceOriginal.toLocaleString()}`;
+                            priceOriginalEl.style.display = '';
+                        } else {
+                            priceOriginalEl.style.display = 'none';
+                        }
+                    }
+                    document.getElementById('p-price').textContent = `$${priceShow.toLocaleString()}`;
                     
                     // Características destacadas
                     const featuresList = document.getElementById('features-list');
@@ -792,12 +803,13 @@
                             const cartKey = '2302_cart';
                             const cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
                             const existing = cart.find(item => String(item.id) === String(product.id));
+                            const effectivePrice = (product.offer && product.precio_oferta != null && product.precio_oferta !== '') ? Number(product.precio_oferta) : Number(product.precio ?? product.price ?? 0);
                             const cartProduct = {
                                 id: product.id,
                                 name: product.nombre || product.name,
                                 nombre: product.nombre || product.name,
-                                price: product.precio ?? product.price,
-                                precio: product.precio ?? product.price,
+                                price: effectivePrice,
+                                precio: effectivePrice,
                                 imagen_url: product.imagen_url || product.image,
                                 image: product.imagen_url || product.image
                             };

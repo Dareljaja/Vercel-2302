@@ -79,6 +79,7 @@ export default async function handler(req, res) {
           howToUse: p['modo de uso'] ?? p['mododeuso'] ?? p.howToUse,
           popular: p.popular ?? false,
           offer: p.offer ?? false,
+          precio_oferta: p.precio_oferta != null ? Number(p.precio_oferta) : null,
           showDescription: vis.showDescription !== false,
           showShortDescription: vis.showShortDescription !== false,
           showSize: vis.showSize !== false,
@@ -113,6 +114,7 @@ export default async function handler(req, res) {
         'modo de uso': sanitize(input.howToUse) || '',
         popular: Boolean(input.popular) || false,
         offer: Boolean(input.offer) || false,
+        precio_oferta: input.precio_oferta != null && input.precio_oferta !== '' ? parseFloat(input.precio_oferta) : null,
         section_visibility: sectionVisibility
       };
 
@@ -125,7 +127,7 @@ export default async function handler(req, res) {
       if (error) throw error;
 
       const vis = data.section_visibility && typeof data.section_visibility === 'object' ? data.section_visibility : {};
-      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false, showDescription: vis.showDescription !== false, showShortDescription: vis.showShortDescription !== false, showSize: vis.showSize !== false, showIngredients: vis.showIngredients !== false, showHowToUse: vis.showHowToUse !== false };
+      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false, precio_oferta: data.precio_oferta != null ? Number(data.precio_oferta) : null, showDescription: vis.showDescription !== false, showShortDescription: vis.showShortDescription !== false, showSize: vis.showSize !== false, showIngredients: vis.showIngredients !== false, showHowToUse: vis.showHowToUse !== false };
       return res.status(201).json({ success: true, product: forFrontend });
 
     } else if (req.method === 'PUT') {
@@ -143,6 +145,7 @@ export default async function handler(req, res) {
       if (updateData.howToUse !== undefined) cleanUpdate['modo de uso'] = sanitize(updateData.howToUse);
       if (updateData.popular !== undefined) cleanUpdate.popular = Boolean(updateData.popular);
       if (updateData.offer !== undefined) cleanUpdate.offer = Boolean(updateData.offer);
+      if (updateData.precio_oferta !== undefined) cleanUpdate.precio_oferta = updateData.precio_oferta != null && updateData.precio_oferta !== '' ? parseFloat(updateData.precio_oferta) : null;
       if (updateData.showDescription !== undefined || updateData.showShortDescription !== undefined || updateData.showSize !== undefined || updateData.showIngredients !== undefined || updateData.showHowToUse !== undefined) {
         cleanUpdate.section_visibility = {
           showDescription: updateData.showDescription !== false,
@@ -163,7 +166,7 @@ export default async function handler(req, res) {
       if (error) throw error;
 
       const visPut = data.section_visibility && typeof data.section_visibility === 'object' ? data.section_visibility : {};
-      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false, showDescription: visPut.showDescription !== false, showShortDescription: visPut.showShortDescription !== false, showSize: visPut.showSize !== false, showIngredients: visPut.showIngredients !== false, showHowToUse: visPut.showHowToUse !== false };
+      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false, precio_oferta: data.precio_oferta != null ? Number(data.precio_oferta) : null, showDescription: visPut.showDescription !== false, showShortDescription: visPut.showShortDescription !== false, showSize: visPut.showSize !== false, showIngredients: visPut.showIngredients !== false, showHowToUse: visPut.showHowToUse !== false };
       return res.status(200).json({ success: true, product: forFrontend });
 
     } else if (req.method === 'DELETE') {
