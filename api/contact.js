@@ -10,6 +10,14 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+  // GET = health check (mismo endpoint para no sumar otra serverless function en Vercel Hobby)
+  if (req.method === 'GET') {
+    return res.status(200).json({
+      ok: true,
+      message: 'API activa',
+      env: process.env.SUPABASE_URL ? 'Supabase configurado' : 'Falta SUPABASE_URL'
+    });
+  }
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
