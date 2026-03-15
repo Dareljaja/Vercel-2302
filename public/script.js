@@ -43,7 +43,7 @@ async function loadProducts() {
             fetch('/api/categories').catch(() => null)
         ]);
         const data = await productsRes.json();
-        products = Array.isArray(data) ? data : [];
+        products = Array.isArray(data) ? data.filter(function (p) { return p != null && (p.id != null || p.id === 0); }) : [];
         window.products = products;
         renderProducts(products);
         const catSelect = document.getElementById('productsCategory');
@@ -127,7 +127,7 @@ function renderCollection(items) {
 }
 
 function buildProductCardsHTML(productsToRender) {
-    return productsToRender.map((product) => {
+    return (productsToRender || []).filter(function (p) { return p != null && (p.id != null || p.id === 0); }).map((product) => {
         const imgUrl = product.imagen_url || product.image;
         const name = product.name || product.nombre || '';
         const category = product.category || product.categoria || '';

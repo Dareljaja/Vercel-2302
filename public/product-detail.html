@@ -591,7 +591,7 @@
                     fetch('/api/categories').catch(() => null)
                 ]);
                 const data = await productsRes.json();
-                const products = Array.isArray(data) ? data : [];
+                const products = Array.isArray(data) ? data.filter(function (p) { return p != null && (p.id != null || p.id === 0); }) : [];
                 const product = products.find(p => p.id == productId);
 
                 let categoryMap = { 'face': 'ROSTRO', 'body': 'CUERPO', 'hair': 'CABELLO' };
@@ -796,6 +796,7 @@
                     const addBtnOriginalHTML = addBtn.innerHTML;
 
                     addBtn.onclick = () => {
+                        if (!product || product.id == null) return;
                         // Ejecutar lógica de agregar al carrito
                         if (typeof window.addToCartWithQuantity === 'function') {
                             window.addToCartWithQuantity(product, qty);

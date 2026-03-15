@@ -1149,8 +1149,8 @@ ${products.map(p => {
                                 <td>${(c.link || '—').substring(0, 30)}${(c.link || '').length > 30 ? '…' : ''}</td>
                                 <td>
                                     <div class="actions">
-                                        <button type="button" class="btn btn-secondary edit-coll-btn" data-id="${c.id}"><i class="fas fa-edit"></i></button>
-                                        <button type="button" class="btn btn-danger delete-coll-btn" data-id="${c.id}"><i class="fas fa-trash"></i></button>
+                                        <button type="button" class="btn btn-secondary edit-coll-btn" data-id="${c && c.id != null ? c.id : ''}"><i class="fas fa-edit"></i></button>
+                                        <button type="button" class="btn btn-danger delete-coll-btn" data-id="${c && c.id != null ? c.id : ''}"><i class="fas fa-trash"></i></button>
                                     </div>
                                 </td>
                             </tr>
