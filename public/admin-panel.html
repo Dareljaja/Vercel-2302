@@ -605,7 +605,7 @@
             container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;color:#d4af37;"></i> Cargando pedidos…</div>';
             countEl.textContent = '';
             try {
-                const res = await fetch('/api/admin/orders', { cache: 'no-store', headers: getAuthHeaders() });
+                const res = await fetch('/api/orders', { cache: 'no-store', headers: getAuthHeaders() });
                 const data = await safeJson(res);
                 if (res.status === 401) {
                     localStorage.removeItem('adminToken');
@@ -679,7 +679,7 @@
 
         async function setOrderStatus(orderId, estado) {
             try {
-                const res = await fetch('/api/admin/orders', {
+                const res = await fetch('/api/orders', {
                     method: 'PATCH',
                     headers: getAuthHeaders(),
                     body: JSON.stringify({ id: orderId, estado })
