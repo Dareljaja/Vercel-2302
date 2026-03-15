@@ -80,6 +80,10 @@ export default async function handler(req, res) {
         throw error;
       }
 
+      if (!data || data.id == null) {
+        return res.status(500).json({ success: false, message: 'Error al guardar el pedido (sin ID). Revisá la tabla pedidos en Supabase.' });
+      }
+
       return res.status(201).json({
         success: true,
         id: data.id,
