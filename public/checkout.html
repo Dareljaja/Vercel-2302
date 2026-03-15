@@ -218,6 +218,33 @@
                     'TOTAL: $' + totalActual.toLocaleString()
                 ].filter(Boolean).join('\n');
 
+                // Guardar pedido en el servidor para que aparezca en el panel admin (Ventas / Pedidos)
+                const itemsPayload = cartActual.map(function(item) {
+                    const price = getPrice(item);
+                    const subtotal = price * item.quantity;
+                    return {
+                        nombre: getName(item),
+                        cantidad: item.quantity,
+                        precio: price,
+                        subtotal: subtotal
+                    };
+                });
+                fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cliente_nombre: nombre,
+                        cliente_email: email,
+                        cliente_telefono: telefono,
+                        direccion: direccion,
+                        localidad: localidad,
+                        cp: cp || '',
+                        comentarios: comentarios || '',
+                        items: itemsPayload,
+                        total: totalActual
+                    })
+                }).then(function(r) { return r.json(); }).catch(function() {});
+
                 // Abrir WhatsApp con el mensaje ya escrito (wa.me/NUMERO?text= es el formato que muestra el mensaje)
                 const url = 'https://wa.me/' + WHATSAPP_PHONE + '?text=' + encodeURIComponent(msg);
                 window.open(url, '_blank', 'noopener');

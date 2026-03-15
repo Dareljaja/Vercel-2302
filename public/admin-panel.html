@@ -191,6 +191,12 @@
         .success { color: #28a745; }
         .error { color: #dc3545; }
         .loading { opacity: .6; pointer-events: none; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+        .badge-pendiente { background: rgba(220, 53, 69, 0.25); color: #e74c3c; }
+        .badge-pagado { background: rgba(40, 167, 69, 0.25); color: #28a745; }
+        .badge-enviado { background: rgba(0, 123, 255, 0.25); color: #5dade2; }
+        .orders-status-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+        .orders-status-btns .btn { padding: 6px 12px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -205,6 +211,15 @@
             <button class="logout-btn" onclick="logout()">
                 <i class="fas fa-sign-out-alt"></i> Salir
             </button>
+        </div>
+
+        <!-- Ventas / Pedidos -->
+        <div class="form-container" style="margin-bottom: 40px;">
+            <h2 class="section-title"><i class="fas fa-shopping-cart"></i> Ventas / Pedidos <span id="ordersCount" class="success"></span></h2>
+            <p class="form-hint" style="margin-bottom: 16px;">Lista de pedidos. Podés marcar cada uno como <strong>Pendiente de pago</strong>, <strong>Pagado</strong> o <strong>Enviado</strong>.</p>
+            <div id="ordersList">
+                <div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;color:#d4af37;"></i> Cargando pedidos…</div>
+            </div>
         </div>
 
         <!-- Categorías (se usan en productos y en el filtro de la tienda) -->
@@ -465,6 +480,7 @@
         let collectionItems = [];
         let editingCollectionId = null;
         let categories = [];
+        let ordersList = [];
 
         // Verificar autenticación al cargar
         const token = localStorage.getItem('adminToken');
@@ -580,6 +596,103 @@
             const btn = e.target.closest('.delete-cat-btn');
             if (btn) { e.preventDefault(); deleteCategory(btn.getAttribute('data-id')); }
         });
+
+        // --- Ventas / Pedidos ---
+        async function loadOrders() {
+            const container = document.getElementById('ordersList');
+            const countEl = document.getElementById('ordersCount');
+            if (!container) return;
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;color:#d4af37;"></i> Cargando pedidos…</div>';
+            countEl.textContent = '';
+            try {
+                const res = await fetch('/api/orders', { cache: 'no-store', headers: getAuthHeaders() });
+                const data = await safeJson(res);
+                if (res.status === 401) {
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin.html';
+                    return;
+                }
+                ordersList = Array.isArray(data.orders) ? data.orders : [];
+                renderOrders();
+            } catch (err) {
+                console.error('Load orders:', err);
+                ordersList = [];
+                container.innerHTML = '<div class="empty-state"><p>No se pudieron cargar los pedidos.</p><button type="button" class="btn" onclick="loadOrders()">Reintentar</button></div>';
+                countEl.textContent = '';
+            }
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('ordersList');
+            const countEl = document.getElementById('ordersCount');
+            if (!container) return;
+            countEl.textContent = ordersList.length ? '(' + ordersList.length + ')' : '';
+            if (!ordersList.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-shopping-cart" style="font-size:4rem;opacity:.3;margin-bottom:16px;"></i><h3>No hay pedidos</h3><p>Los pedidos que los clientes envíen desde el checkout aparecerán aquí.</p></div>';
+                return;
+            }
+            const estadoLabel = { pendiente_pago: 'Pendiente de pago', pagado: 'Pagado', enviado: 'Enviado' };
+            const estadoClass = { pendiente_pago: 'badge-pendiente', pagado: 'badge-pagado', enviado: 'badge-enviado' };
+            container.innerHTML = `
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Teléfono</th>
+                            <th>Dirección / Localidad</th>
+                            <th>Resumen</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ordersList.map(o => {
+                            const itemsText = Array.isArray(o.items) && o.items.length
+                                ? o.items.map(i => (i.cantidad || i.quantity || 1) + 'x ' + (i.nombre || i.name || '—')).join(', ')
+                                : '—';
+                            const totalStr = o.total != null ? '$' + Number(o.total).toLocaleString() : '—';
+                            const estado = o.estado || 'pendiente_pago';
+                            const created = o.created_at ? new Date(o.created_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+                            return `
+                            <tr>
+                                <td>${o.id ?? '—'}</td>
+                                <td>${(o.cliente_nombre || '—').substring(0, 25)}${(o.cliente_nombre || '').length > 25 ? '…' : ''}<br><small style="opacity:.7">${(o.cliente_email || '').substring(0, 30)}</small></td>
+                                <td>${(o.cliente_telefono || '—').substring(0, 18)}</td>
+                                <td>${(o.direccion || '—').substring(0, 25)}${(o.direccion || '').length > 25 ? '…' : ''}<br><small>${(o.localidad || '')}</small></td>
+                                <td style="max-width:180px;font-size:.9em">${itemsText.substring(0, 60)}${itemsText.length > 60 ? '…' : ''}</td>
+                                <td><span class="price">${totalStr}</span></td>
+                                <td><span class="badge ${estadoClass[estado] || 'badge-pendiente'}">${estadoLabel[estado] || estado}</span></td>
+                                <td>
+                                    <div class="orders-status-btns">
+                                        <button type="button" class="btn btn-sm ${estado === 'pendiente_pago' ? 'btn-secondary' : ''}" onclick="setOrderStatus(${o.id}, 'pendiente_pago')" title="Pendiente de pago">Pendiente</button>
+                                        <button type="button" class="btn btn-sm ${estado === 'pagado' ? 'btn-secondary' : ''}" onclick="setOrderStatus(${o.id}, 'pagado')" title="Cliente pagó">Pagado</button>
+                                        <button type="button" class="btn btn-sm ${estado === 'enviado' ? 'btn-secondary' : ''}" onclick="setOrderStatus(${o.id}, 'enviado')" title="Enviado">Enviado</button>
+                                    </div>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        async function setOrderStatus(orderId, estado) {
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ id: orderId, estado })
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al actualizar');
+                const idx = ordersList.findIndex(o => o.id == orderId);
+                if (idx >= 0) ordersList[idx].estado = estado;
+                renderOrders();
+            } catch (err) {
+                alert('Error: ' + (err.message || 'No se pudo actualizar el estado'));
+            }
+        }
 
         async function loadProducts() {
             const container = document.getElementById('productsList');
@@ -1102,11 +1215,12 @@ ${products.map(p => {
             else if (delBtn) { e.preventDefault(); deleteCollection(delBtn.getAttribute('data-id')); }
         });
 
-        // Init: cargar categorías primero (rellena el select de productos), luego productos y colección
+        // Init: cargar categorías primero (rellena el select de productos), luego productos, pedidos y colección
         var initialRetry = document.getElementById('retryLoadBtn');
         if (initialRetry) initialRetry.addEventListener('click', loadProducts);
         loadCategories();
         loadProducts();
+        loadOrders();
         loadCollection();
     </script>
 </body>
