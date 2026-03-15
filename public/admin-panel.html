@@ -531,7 +531,7 @@
             const listEl = document.getElementById('categoriesList');
             if (sel) sel.innerHTML = '<option value="">Cargando…</option>';
             try {
-                const res = await fetch('/api/admin/categories', { cache: 'no-store', headers: getAuthHeaders() });
+                const res = await fetch('/api/admin?resource=categories', { cache: 'no-store', headers: getAuthHeaders() });
                 const data = await safeJson(res);
                 if (res.status === 401) {
                     localStorage.removeItem('adminToken');
@@ -573,7 +573,7 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
             try {
-                const res = await fetch('/api/admin/categories', {
+                const res = await fetch('/api/admin?resource=categories', {
                     method: 'POST',
                     headers: getAuthHeaders(),
                     body: JSON.stringify({ nombre, slug: slug || undefined })
@@ -593,7 +593,7 @@
         async function deleteCategory(id) {
             if (!confirm('¿Eliminar esta categoría?')) return;
             try {
-                const res = await fetch('/api/admin/categories?id=' + encodeURIComponent(id), { method: 'DELETE', headers: getAuthHeaders() });
+                const res = await fetch('/api/admin?resource=categories&id=' + encodeURIComponent(id), { method: 'DELETE', headers: getAuthHeaders() });
                 const data = await safeJson(res);
                 if (!res.ok) throw new Error(data.message || 'Error');
                 loadCategories();
@@ -744,7 +744,7 @@
             const timeoutId = setTimeout(() => controller.abort(), 15000);
 
             try {
-                const res = await fetch('/api/admin/products', { 
+                const res = await fetch('/api/admin?resource=products', { 
                     cache: 'no-store', 
                     signal: controller.signal,
                     headers: getAuthHeaders()
@@ -881,7 +881,7 @@ ${products.map(p => {
                     showHowToUse: document.getElementById('showHowToUse').checked
                 };
 
-                const res = await fetch('/api/admin/products', {
+                const res = await fetch('/api/admin?resource=products', {
                     method: editingId ? 'PUT' : 'POST',
                     headers: getAuthHeaders(),
                     body: JSON.stringify(editingId ? { id: editingId, ...productData } : productData)
@@ -1049,7 +1049,7 @@ ${products.map(p => {
             const idNorm = id != null ? Number(id) : NaN;
             if (isNaN(idNorm)) return;
             try {
-                const res = await fetch(`/api/admin/products?id=${idNorm}`, {
+                const res = await fetch(`/api/admin?resource=products&id=${idNorm}`, {
                     method: 'DELETE',
                     headers: getAuthHeaders()
                 });
@@ -1110,7 +1110,7 @@ ${products.map(p => {
             container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;color:#d4af37;"></i><p>Cargando colección…</p></div>';
             countEl.textContent = '';
             try {
-                const res = await fetch('/api/admin/collection', { cache: 'no-store', headers: getAuthHeaders() });
+                const res = await fetch('/api/admin?resource=collection', { cache: 'no-store', headers: getAuthHeaders() });
                 const data = await safeJson(res);
                 if (res.status === 401) {
                     alert('Sesión expirada.');
@@ -1174,7 +1174,7 @@ ${products.map(p => {
                     orden: parseInt(document.getElementById('collOrden').value, 10) || 0,
                     activo: document.getElementById('collActivo').checked
                 };
-                const res = await fetch('/api/admin/collection', {
+                const res = await fetch('/api/admin?resource=collection', {
                     method: 'POST',
                     headers: getAuthHeaders(),
                     body: JSON.stringify(payload)
@@ -1216,7 +1216,7 @@ ${products.map(p => {
             e.preventDefault();
             if (editingCollectionId == null) return;
             try {
-                const res = await fetch('/api/admin/collection', {
+                const res = await fetch('/api/admin?resource=collection', {
                     method: 'PUT',
                     headers: getAuthHeaders(),
                     body: JSON.stringify({
@@ -1241,7 +1241,7 @@ ${products.map(p => {
         async function deleteCollection(id) {
             if (!confirm('¿Eliminar esta tarjeta de la colección?')) return;
             try {
-                const res = await fetch('/api/admin/collection?id=' + encodeURIComponent(id), { method: 'DELETE', headers: getAuthHeaders() });
+                const res = await fetch('/api/admin?resource=collection&id=' + encodeURIComponent(id), { method: 'DELETE', headers: getAuthHeaders() });
                 const data = await safeJson(res);
                 if (!res.ok) throw new Error(data.message || 'Error al eliminar');
                 loadCollection();
