@@ -1,16 +1,15 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 
-const client = new MercadoPagoConfig({
-  accessToken: process.env.MERCADOPAGO_TOKEN
-});
+const accessToken = process.env.MERCADOPAGO_TOKEN;
+const client = new MercadoPagoConfig({ accessToken });
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (!process.env.MERCADOPAGO_TOKEN) {
-    return res.status(500).json({ error: 'Configura MERCADOPAGO_TOKEN en Vercel' });
+  if (!accessToken) {
+    return res.status(500).json({ error: 'Configura MERCADOPAGO_TOKEN en Vercel (o en .env.local para local)' });
   }
   try {
     const input = req.body;
@@ -19,34 +18,37 @@ export default async function handler(req, res) {
     }
 
     const items = input.items.map(item => ({
-      id: item.id,
-      title: item.name,
+      id: String(item.id || ''),
+      title: item.name || 'Producto',
       description: item.description || '',
-      quantity: item.quantity,
-      unit_price: parseFloat(item.price),
+      quantity: Number(item.quantity) || 1,
+      unit_price: parseFloat(item.price) || 0,
       currency_id: 'ARS',
       picture_url: item.image || ''
     }));
 
-    const preference = new Preference(client).create({
-      body: {
-        items,
-        payer: {
-          name: input.payer?.name || 'Comprador',
-          email: input.payer?.email || ''
-        },
-        back_urls: {
-          success: `${req.headers.origin || 'https://' + req.headers.host}/success.html`,
-          failure: `${req.headers.origin || 'https://' + req.headers.host}/failure.html`,
-          pending: `${req.headers.origin || 'https://' + req.headers.host}/pending.html`
-        },
-        payment_methods: {
-          installments: 12
-        }
-      }
-    });
+    const body = {
+      items,
+      payer: {
+        name: input.payer?.name || 'Comprador',
+        email: input.payer?.email || ''
+      },
+      back_urls: {
+        success: `${req.headers.origin || 'https://' + req.headers.host}/success.html`,
+        failure: `${req.headers.origin || 'https://' + req.headers.host}/failure.html`,
+        pending: `${req.headers.origin || 'https://' + req.headers.host}/pending.html`
+      },
+      payment_methods: {
+        installments: 12
+      },
+      auto_return: 'approved'
+    };
+    // order_id = id del pedido en tu sistema; Mercado Pago lo devuelve en el pago para el webhook
+    if (input.order_id != null && input.order_id !== '') {
+      body.external_reference = String(input.order_id);
+    }
 
-    const response = await preference;
+    const response = await new Preference(client).create({ body });
     res.json({
       success: true,
       preference_id: response.body.id,

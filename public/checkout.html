@@ -42,6 +42,7 @@
         .btn-whatsapp:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .btn-back { background: transparent; color: #c9a962; border: 1px solid rgba(201,169,98,0.4); }
         .btn-back:hover { background: rgba(201,169,98,0.1); }
+        #btnMercadoPago:hover { background: #0080c0 !important; transform: translateY(-1px); }
         .form-error { color: #e74c3c; font-size: 0.85rem; margin-top: 4px; }
     </style>
 </head>
@@ -150,6 +151,9 @@
                         <textarea id="comentarios" name="comentarios" placeholder="Horario preferido, instrucciones, etc."></textarea>
                     </div>
                     <div class="checkout-actions">
+                        <button type="button" class="btn" id="btnMercadoPago" style="background:#009ee3;color:#fff;">
+                            <i class="fas fa-credit-card"></i> Pagar con Mercado Pago
+                        </button>
                         <button type="submit" class="btn btn-whatsapp" id="btnEnviar">
                             <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
                         </button>
@@ -164,6 +168,96 @@
                 if (confirm('¿Vaciar el carrito y volver al inicio?')) {
                     localStorage.removeItem(CART_KEY);
                     window.location.href = 'index.html';
+                }
+            });
+
+            // Pagar con Mercado Pago: guardar pedido → crear preferencia → redirigir a MP
+            document.getElementById('btnMercadoPago').addEventListener('click', async function() {
+                const nombre = (document.getElementById('nombre').value || '').trim();
+                const email = (document.getElementById('email').value || '').trim();
+                const telefono = (document.getElementById('telefono').value || '').trim();
+                const direccion = (document.getElementById('direccion').value || '').trim();
+                const localidad = (document.getElementById('localidad').value || '').trim();
+                const cp = (document.getElementById('cp').value || '').trim();
+                const comentarios = (document.getElementById('comentarios').value || '').trim();
+                document.querySelectorAll('.form-error').forEach(el => { el.textContent = ''; });
+                let valid = true;
+                if (!nombre) { document.getElementById('err-nombre').textContent = 'Ingresá tu nombre.'; valid = false; }
+                if (!email) { document.getElementById('err-email').textContent = 'Ingresá tu email.'; valid = false; }
+                if (!telefono) { document.getElementById('err-telefono').textContent = 'Ingresá tu teléfono.'; valid = false; }
+                if (!direccion) { document.getElementById('err-direccion').textContent = 'Ingresá la dirección.'; valid = false; }
+                if (!localidad) { document.getElementById('err-localidad').textContent = 'Ingresá localidad/ciudad.'; valid = false; }
+                if (!valid) return;
+                const cartActual = getCart();
+                if (cartActual.length === 0) {
+                    alert('El carrito está vacío.');
+                    return;
+                }
+                let totalActual = 0;
+                const itemsPayload = cartActual.map(function(item) {
+                    const price = getPrice(item);
+                    const subtotal = price * item.quantity;
+                    totalActual += subtotal;
+                    return { nombre: getName(item), cantidad: item.quantity, precio: price, subtotal: subtotal };
+                });
+                var statusEl = document.getElementById('checkoutSaveStatus');
+                var apiBase = (window.location.origin || '').replace(/\/$/, '');
+                try {
+                    statusEl.innerHTML = '<span style="color:#c9a962;">Creando pedido…</span>';
+                    var orderRes = await fetch(apiBase + '/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            cliente_nombre: nombre,
+                            cliente_email: email,
+                            cliente_telefono: telefono,
+                            direccion: direccion,
+                            localidad: localidad,
+                            cp: cp || '',
+                            comentarios: comentarios || '',
+                            items: itemsPayload,
+                            total: totalActual
+                        })
+                    });
+                    var orderData = await orderRes.json().catch(function() { return {}; });
+                    if (!orderRes.ok) {
+                        statusEl.innerHTML = '<span style="color:#e74c3c;">' + (orderData.message || 'Error al guardar pedido') + '</span>';
+                        return;
+                    }
+                    var orderId = orderData.id;
+                    if (!orderId) {
+                        statusEl.innerHTML = '<span style="color:#e74c3c;">No se recibió ID del pedido.</span>';
+                        return;
+                    }
+                    statusEl.innerHTML = '<span style="color:#c9a962;">Redirigiendo a Mercado Pago…</span>';
+                    var prefItems = cartActual.map(function(item) {
+                        var p = getPrice(item);
+                        return {
+                            id: item.id,
+                            name: getName(item),
+                            quantity: item.quantity,
+                            price: p,
+                            image: getImg(item)
+                        };
+                    });
+                    var prefRes = await fetch(apiBase + '/api/create-preference', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            items: prefItems,
+                            payer: { name: nombre, email: email },
+                            order_id: orderId
+                        })
+                    });
+                    var prefData = await prefRes.json().catch(function() { return {}; });
+                    if (!prefRes.ok || !prefData.init_point) {
+                        statusEl.innerHTML = '<span style="color:#e74c3c;">' + (prefData.error || 'Error al crear link de pago') + '</span>';
+                        return;
+                    }
+                    window.location.href = prefData.init_point;
+                } catch (err) {
+                    if (statusEl) statusEl.innerHTML = '<span style="color:#e74c3c;">Error de conexión. Probá de nuevo.</span>';
+                    console.error(err);
                 }
             });
 
