@@ -198,6 +198,10 @@
         .badge-cancelado { background: rgba(108, 117, 125, 0.35); color: #adb5bd; }
         .orders-status-btns { display: flex; flex-wrap: wrap; gap: 6px; }
         .orders-status-btns .btn { padding: 6px 12px; font-size: 0.85rem; }
+        .order-resumen { min-width: 220px; max-width: 320px; font-size: 0.9em; white-space: normal; }
+        .order-resumen .order-item { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .order-resumen .order-item:last-child { border-bottom: none; }
+        .order-resumen .order-item-subtotal { color: #d4af37; margin-left: 6px; }
     </style>
 </head>
 <body>
@@ -650,19 +654,24 @@
                     </thead>
                     <tbody>
                         ${ordersList.map(o => {
-                            const itemsText = Array.isArray(o.items) && o.items.length
-                                ? o.items.map(i => (i.cantidad || i.quantity || 1) + 'x ' + (i.nombre || i.name || '—')).join(', ')
+                            const items = Array.isArray(o.items) ? o.items : [];
+                            const itemsHtml = items.length
+                                ? items.map(function(i) {
+                                    const qty = i.cantidad ?? i.quantity ?? 1;
+                                    const name = (i.nombre || i.name || '—').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                                    const sub = i.subtotal != null ? '$' + Number(i.subtotal).toLocaleString() : '';
+                                    return '<div class="order-item">' + qty + '× ' + name + (sub ? '<span class="order-item-subtotal">' + sub + '</span>' : '') + '</div>';
+                                  }).join('')
                                 : '—';
                             const totalStr = o.total != null ? '$' + Number(o.total).toLocaleString() : '—';
                             const estado = o.estado || 'pendiente_pago';
-                            const created = o.created_at ? new Date(o.created_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : '';
                             return `
                             <tr>
                                 <td>${o.id ?? '—'}</td>
                                 <td>${(o.cliente_nombre || '—').substring(0, 25)}${(o.cliente_nombre || '').length > 25 ? '…' : ''}<br><small style="opacity:.7">${(o.cliente_email || '').substring(0, 30)}</small></td>
                                 <td>${(o.cliente_telefono || '—').substring(0, 18)}</td>
                                 <td>${(o.direccion || '—').substring(0, 25)}${(o.direccion || '').length > 25 ? '…' : ''}<br><small>${(o.localidad || '')}</small></td>
-                                <td style="max-width:180px;font-size:.9em">${itemsText.substring(0, 60)}${itemsText.length > 60 ? '…' : ''}</td>
+                                <td class="order-resumen">${itemsHtml}</td>
                                 <td><span class="price">${totalStr}</span></td>
                                 <td><span class="badge ${estadoClass[estado] || 'badge-pendiente'}">${estadoLabel[estado] || estado}</span></td>
                                 <td>
@@ -671,6 +680,7 @@
                                         <button type="button" class="btn btn-sm ${estado === 'pagado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'pagado')" title="Cliente pagó">Pagado</button>
                                         <button type="button" class="btn btn-sm ${estado === 'enviado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'enviado')" title="Enviado">Enviado</button>
                                         <button type="button" class="btn btn-sm btn-danger ${estado === 'cancelado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'cancelado')" title="Cancelar compra">Cancelar</button>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteOrder('${String(o.id).replace(/'/g, "\\'")}')" title="Eliminar pedido"><i class="fas fa-trash"></i></button>
                                     </div>
                                 </td>
                             </tr>`;
@@ -693,6 +703,22 @@
                 renderOrders();
             } catch (err) {
                 alert('Error: ' + (err.message || 'No se pudo actualizar el estado'));
+            }
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) return;
+            try {
+                const res = await fetch('/api/orders?id=' + encodeURIComponent(orderId), {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al eliminar');
+                ordersList = ordersList.filter(o => o.id != orderId && String(o.id) !== String(orderId));
+                renderOrders();
+            } catch (err) {
+                alert('Error: ' + (err.message || 'No se pudo eliminar el pedido'));
             }
         }
 

@@ -155,14 +155,16 @@ function getFilteredProducts() {
     const categoryEl = document.getElementById('productsCategory');
     const query = (searchEl && searchEl.value) ? searchEl.value.trim().toLowerCase() : '';
     const category = (categoryEl && categoryEl.value) ? categoryEl.value.trim().toLowerCase() : '';
+    const searchWords = query ? query.split(/\s+/).filter(Boolean) : [];
     return products.filter((p) => {
         const matchCategory = !category || (p.category || p.categoria || '').toLowerCase() === category;
         if (!matchCategory) return false;
-        if (!query) return true;
+        if (!searchWords.length) return true;
         const name = (p.name || p.nombre || '').toLowerCase();
         const desc = (p.shortDescription || p.description || p.descripcion || '').toLowerCase();
         const cat = (p.category || p.categoria || '').toLowerCase();
-        return name.includes(query) || desc.includes(query) || cat.includes(query);
+        const text = name + ' ' + desc + ' ' + cat;
+        return searchWords.every((word) => text.includes(word));
     });
 }
 
