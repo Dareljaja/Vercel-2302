@@ -329,6 +329,21 @@ function loadCartFromStorage() {
 }
 
 function initEventListeners() {
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileNav = document.getElementById('mobileNav');
+    mobileMenuBtn?.addEventListener('click', () => {
+        mobileMenuBtn?.classList.toggle('active');
+        mobileNav?.classList.toggle('active');
+        document.body.style.overflow = mobileNav?.classList.contains('active') ? 'hidden' : '';
+    });
+    document.querySelectorAll('.mobile-nav-link')?.forEach((link) => {
+        link.addEventListener('click', () => {
+            mobileMenuBtn?.classList.remove('active');
+            mobileNav?.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    });
+
     document.getElementById('cartBtn')?.addEventListener('click', () => {
         cartSidebar?.classList.add('active');
         cartOverlay?.classList.add('active');
