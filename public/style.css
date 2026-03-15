@@ -1830,6 +1830,10 @@ h1, h2, h3, h4, h5, h6 {
         --section-padding: 60px;
     }
     
+    .hero {
+        padding-bottom: 90px;
+    }
+    
     .hero-title {
         letter-spacing: 5px;
     }
@@ -1841,6 +1845,11 @@ h1, h2, h3, h4, h5, h6 {
     .hero-stats {
         flex-direction: column;
         gap: 20px;
+        margin-bottom: 35px;
+    }
+    
+    .scroll-indicator {
+        bottom: 20px;
     }
     
     .footer-content {
