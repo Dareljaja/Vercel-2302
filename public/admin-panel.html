@@ -195,6 +195,7 @@
         .badge-pendiente { background: rgba(220, 53, 69, 0.25); color: #e74c3c; }
         .badge-pagado { background: rgba(40, 167, 69, 0.25); color: #28a745; }
         .badge-enviado { background: rgba(0, 123, 255, 0.25); color: #5dade2; }
+        .badge-cancelado { background: rgba(108, 117, 125, 0.35); color: #adb5bd; }
         .orders-status-btns { display: flex; flex-wrap: wrap; gap: 6px; }
         .orders-status-btns .btn { padding: 6px 12px; font-size: 0.85rem; }
     </style>
@@ -631,8 +632,8 @@
                 container.innerHTML = '<div class="empty-state"><i class="fas fa-shopping-cart" style="font-size:4rem;opacity:.3;margin-bottom:16px;"></i><h3>No hay pedidos</h3><p>Los pedidos que los clientes envíen desde el checkout aparecerán aquí.</p></div>';
                 return;
             }
-            const estadoLabel = { pendiente_pago: 'Pendiente de pago', pagado: 'Pagado', enviado: 'Enviado' };
-            const estadoClass = { pendiente_pago: 'badge-pendiente', pagado: 'badge-pagado', enviado: 'badge-enviado' };
+            const estadoLabel = { pendiente_pago: 'Pendiente de pago', pagado: 'Pagado', enviado: 'Enviado', cancelado: 'Cancelado' };
+            const estadoClass = { pendiente_pago: 'badge-pendiente', pagado: 'badge-pagado', enviado: 'badge-enviado', cancelado: 'badge-cancelado' };
             container.innerHTML = `
                 <table class="products-table">
                     <thead>
@@ -669,6 +670,7 @@
                                         <button type="button" class="btn btn-sm ${estado === 'pendiente_pago' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'pendiente_pago')" title="Pendiente de pago">Pendiente</button>
                                         <button type="button" class="btn btn-sm ${estado === 'pagado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'pagado')" title="Cliente pagó">Pagado</button>
                                         <button type="button" class="btn btn-sm ${estado === 'enviado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'enviado')" title="Enviado">Enviado</button>
+                                        <button type="button" class="btn btn-sm btn-danger ${estado === 'cancelado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'cancelado')" title="Cancelar compra">Cancelar</button>
                                     </div>
                                 </td>
                             </tr>`;

@@ -12,7 +12,7 @@ create table if not exists public.pedidos (
   comentarios text,
   items jsonb default '[]'::jsonb,
   total numeric(12,2) default 0,
-  estado text not null default 'pendiente_pago' check (estado in ('pendiente_pago', 'pagado', 'enviado')),
+  estado text not null default 'pendiente_pago' check (estado in ('pendiente_pago', 'pagado', 'enviado', 'cancelado')),
   created_at timestamptz default now()
 );
 
@@ -26,3 +26,7 @@ create policy "Service role full access"
   on public.pedidos for all
   using (true)
   with check (true);
+
+-- Si ya tenés la tabla creada sin 'cancelado', ejecutá solo esto en SQL Editor para agregar el estado:
+-- alter table public.pedidos drop constraint if exists pedidos_estado_check;
+-- alter table public.pedidos add constraint pedidos_estado_check check (estado in ('pendiente_pago', 'pagado', 'enviado', 'cancelado'));

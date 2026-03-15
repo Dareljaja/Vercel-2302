@@ -9,7 +9,7 @@ function getSupabase() {
 }
 
 const supabase = getSupabase();
-const ESTADOS = ['pendiente_pago', 'pagado', 'enviado'];
+const ESTADOS = ['pendiente_pago', 'pagado', 'enviado', 'cancelado'];
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
