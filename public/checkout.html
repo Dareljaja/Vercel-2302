@@ -229,7 +229,8 @@
                         subtotal: subtotal
                     };
                 });
-                fetch('/api/orders', {
+                const apiUrl = (window.location.origin || '').replace(/\/$/, '') + '/api/orders';
+                fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -243,7 +244,18 @@
                         items: itemsPayload,
                         total: totalActual
                     })
-                }).then(function(r) { return r.json(); }).catch(function() {});
+                }).then(function(r) {
+                    return r.json().then(function(data) {
+                        if (!r.ok) {
+                            console.error('Error al guardar pedido:', data.message || r.status);
+                            alert('El pedido se envió a WhatsApp pero no se guardó en el sistema. Revisá la consola (F12) para más detalles.');
+                        }
+                        return data;
+                    });
+                }).catch(function(err) {
+                    console.error('Error de red al guardar pedido:', err);
+                    alert('No se pudo conectar con el servidor. ¿Estás probando en la URL desplegada de Vercel? (No en localhost ni XAMPP)');
+                });
 
                 // Abrir WhatsApp con el mensaje ya escrito (wa.me/NUMERO?text= es el formato que muestra el mensaje)
                 const url = 'https://wa.me/' + WHATSAPP_PHONE + '?text=' + encodeURIComponent(msg);
