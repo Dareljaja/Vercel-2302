@@ -46,7 +46,10 @@
         #btnMercadoPago:hover { background: #3d3d3d !important; transform: none !important; }
         .btn-whatsapp-wrap { position: relative; width: 100%; }
         .btn-whatsapp-wrap .btn { width: 100%; }
-        .btn-recomendado { position: absolute; top: 8px; right: 12px; background: #c9a962; color: #0a0a0a; font-size: 0.65rem; font-weight: 700; padding: 3px 6px; border-radius: 4px; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.2); letter-spacing: 0.5px; }
+        .btn-recomendado { position: absolute; top: 8px; right: 12px; background: rgba(0,0,0,0.75); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.3); letter-spacing: 0.5px; z-index: 2; }
+        #checkoutSaveStatus { min-height: 22px; margin-top: 8px; font-size: 0.8rem; color: #666; }
+        .checkout-actions .link-vaciar { color: #555 !important; font-size: 0.8rem; margin-top: 6px; text-decoration: none; }
+        .checkout-actions .link-vaciar:hover { color: #777 !important; }
         .form-error { color: #e74c3c; font-size: 0.85rem; margin-top: 4px; }
     </style>
 </head>
@@ -164,9 +167,9 @@
                                 <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
                             </button>
                         </div>
-                        <div id="checkoutSaveStatus" style="min-height:22px;margin-top:10px;font-size:0.9rem;"></div>
+                        <div id="checkoutSaveStatus"></div>
                         <a href="index.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Seguir comprando</a>
-                        <a href="#" id="vaciarCarrito" style="color:#888;font-size:0.85rem;margin-top:8px;">Vaciar carrito y volver</a>
+                        <a href="#" id="vaciarCarrito" class="link-vaciar">Vaciar carrito y volver</a>
                     </div>
                 </form>`;
 
@@ -358,7 +361,7 @@
                     var bodyPromise = contentType.indexOf('json') >= 0 ? r.json() : r.text().then(function(t) { try { return JSON.parse(t); } catch (e) { return { message: t || 'Error ' + r.status }; } });
                     return bodyPromise.then(function(data) {
                         if (r.ok) {
-                            if (statusEl) statusEl.innerHTML = '<span style="color:#28a745;">Pedido guardado. Aparece en Admin → Ventas / Pedidos.</span>';
+                            if (statusEl) statusEl.innerHTML = '<span style="color:#666;">Pedido guardado.</span>';
                             return data;
                         }
                         var msg = (data && data.message) || ('Error ' + r.status);
