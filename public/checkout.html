@@ -42,7 +42,10 @@
         .btn-whatsapp:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .btn-back { background: transparent; color: #c9a962; border: 1px solid rgba(201,169,98,0.4); }
         .btn-back:hover { background: rgba(201,169,98,0.1); }
-        #btnMercadoPago:hover { background: #0080c0 !important; transform: translateY(-1px); }
+        #btnMercadoPago { background: #3d3d3d !important; color: #888 !important; cursor: not-allowed !important; }
+        #btnMercadoPago:hover { background: #3d3d3d !important; transform: none !important; }
+        .btn-whatsapp-wrap { position: relative; display: inline-block; }
+        .btn-recomendado { position: absolute; top: -10px; right: -4px; background: #c9a962; color: #0a0a0a; font-size: 0.7rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.3); letter-spacing: 0.5px; }
         .form-error { color: #e74c3c; font-size: 0.85rem; margin-top: 4px; }
     </style>
 </head>
@@ -151,12 +154,15 @@
                         <textarea id="comentarios" name="comentarios" placeholder="Horario preferido, instrucciones, etc."></textarea>
                     </div>
                     <div class="checkout-actions">
-                        <button type="button" class="btn" id="btnMercadoPago" style="background:#009ee3;color:#fff;">
-                            <i class="fas fa-credit-card"></i> Pagar con Mercado Pago
+                        <button type="button" class="btn" id="btnMercadoPago" disabled>
+                            <i class="fas fa-credit-card"></i> Mercado Pago — Próximamente
                         </button>
-                        <button type="submit" class="btn btn-whatsapp" id="btnEnviar">
-                            <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
-                        </button>
+                        <div class="btn-whatsapp-wrap">
+                            <span class="btn-recomendado">(recomendado)</span>
+                            <button type="submit" class="btn btn-whatsapp" id="btnEnviar">
+                                <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
+                            </button>
+                        </div>
                         <div id="checkoutSaveStatus" style="min-height:22px;margin-top:10px;font-size:0.9rem;"></div>
                         <a href="index.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Seguir comprando</a>
                         <a href="#" id="vaciarCarrito" style="color:#888;font-size:0.85rem;margin-top:8px;">Vaciar carrito y volver</a>
@@ -171,8 +177,10 @@
                 }
             });
 
-            // Pagar con Mercado Pago: guardar pedido → crear preferencia → redirigir a MP
-            document.getElementById('btnMercadoPago').addEventListener('click', async function() {
+            // Mercado Pago deshabilitado (Próximamente) — no hace nada al hacer clic
+            document.getElementById('btnMercadoPago').addEventListener('click', async function(e) {
+                e.preventDefault();
+                return;
                 const nombre = (document.getElementById('nombre').value || '').trim();
                 const email = (document.getElementById('email').value || '').trim();
                 const telefono = (document.getElementById('telefono').value || '').trim();
