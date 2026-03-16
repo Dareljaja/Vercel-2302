@@ -36,7 +36,7 @@
         .checkout-form textarea { min-height: 80px; resize: vertical; }
         .checkout-form .hint { color: #666; font-size: 0.8rem; margin-top: 4px; }
         .checkout-actions { display: flex; flex-direction: column; gap: 12px; }
-        .checkout-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 24px; border-radius: 8px; font-weight: 700; letter-spacing: 1px; transition: all 0.2s; cursor: pointer; font-size: 1rem; border: none; text-decoration: none; font-family: inherit; }
+        .checkout-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 24px; border-radius: 8px; font-weight: 700; letter-spacing: 1px; transition: all 0.2s; cursor: pointer; font-size: 1rem; border: none; text-decoration: none; font-family: inherit; width: 100%; box-sizing: border-box; }
         .btn-whatsapp { background: #25d366; color: #fff; }
         .btn-whatsapp:hover { background: #20bd5a; transform: translateY(-1px); }
         .btn-whatsapp:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
@@ -44,8 +44,9 @@
         .btn-back:hover { background: rgba(201,169,98,0.1); }
         #btnMercadoPago { background: #3d3d3d !important; color: #888 !important; cursor: not-allowed !important; }
         #btnMercadoPago:hover { background: #3d3d3d !important; transform: none !important; }
-        .btn-whatsapp-wrap { position: relative; display: inline-block; }
-        .btn-recomendado { position: absolute; top: -10px; right: -4px; background: #c9a962; color: #0a0a0a; font-size: 0.7rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.3); letter-spacing: 0.5px; }
+        .btn-whatsapp-wrap { position: relative; width: 100%; }
+        .btn-whatsapp-wrap .btn { width: 100%; }
+        .btn-recomendado { position: absolute; top: 8px; right: 12px; background: #c9a962; color: #0a0a0a; font-size: 0.65rem; font-weight: 700; padding: 3px 6px; border-radius: 4px; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.2); letter-spacing: 0.5px; }
         .form-error { color: #e74c3c; font-size: 0.85rem; margin-top: 4px; }
     </style>
 </head>
