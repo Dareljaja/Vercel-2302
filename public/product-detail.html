@@ -781,6 +781,21 @@
                     // Selector de cantidad
                     const stockRaw = product.stock ?? product.Stock ?? product.cantidad ?? product.qty ?? null;
                     const stock = (stockRaw === null || stockRaw === undefined || stockRaw === '') ? null : Math.max(0, Math.trunc(Number(stockRaw) || 0));
+
+                    // Blindaje: si por algún motivo existe un nodo "Stock disponible: X" lo ocultamos
+                    (function hideStockLabels() {
+                        try {
+                            const root = document.querySelector('.product-info-side') || document.body;
+                            const nodes = root.querySelectorAll('div, p, span, small');
+                            nodes.forEach((el) => {
+                                const t = (el.textContent || '').trim().toLowerCase();
+                                if (t.startsWith('stock disponible')) {
+                                    el.style.display = 'none';
+                                }
+                            });
+                        } catch (e) {}
+                    })();
+
                     const qtyValueEl = document.getElementById('qty-value');
                     const qtyMinus = document.getElementById('qty-minus');
                     const qtyPlus = document.getElementById('qty-plus');
