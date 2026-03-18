@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago exitoso | 2302</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .result-page { max-width: 500px; margin: 60px auto; padding: 40px 20px; text-align: center; }
+        .result-page h1 { color: #c9a962; font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 16px; }
+        .result-page p { color: #ccc; margin-bottom: 24px; }
+        .result-page a { color: #c9a962; text-decoration: none; }
+        .result-page a:hover { text-decoration: underline; }
+        .result-icon { font-size: 4rem; color: #28a745; margin-bottom: 20px; }
+    </style>
+</head>
+<body style="background: #0a0a0a; color: #fff; font-family: 'DM Sans', sans-serif; min-height: 100vh;">
+    <div class="result-page">
+        <div class="result-icon"><i class="fas fa-check-circle"></i></div>
+        <h1>PAGO EXITOSO</h1>
+        <p>Tu pago fue acreditado. El pedido aparecerá en nuestro panel y te contactaremos para la entrega.</p>
+        <p><a href="index.html">Volver al inicio</a></p>
+    </div>
+    <script>
+        // Vaciar carrito al volver de un pago exitoso
+        try { localStorage.removeItem('2302_cart'); } catch (e) {}
+    </script>
+</body>
+</html>

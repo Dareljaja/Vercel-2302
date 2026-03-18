@@ -48,8 +48,20 @@ async function reserveStockOrFail(supabase, items) {
 
 function buildWhatsAppText(items, meta) {
   const lines = [];
-  lines.push('Hola! Quiero comprar:');
+  lines.push('¡Hola! Quiero comprar en 2302:');
   lines.push('');
+  if (meta?.customer) {
+    const c = meta.customer;
+    lines.push('— DATOS —');
+    if (c.nombre) lines.push(`Nombre: ${c.nombre}`);
+    if (c.email) lines.push(`Email: ${c.email}`);
+    if (c.telefono) lines.push(`Teléfono: ${c.telefono}`);
+    if (c.direccion) lines.push(`Dirección: ${c.direccion}`);
+    if (c.localidad) lines.push(`Localidad: ${c.localidad}${c.cp ? ` (CP: ${c.cp})` : ''}`);
+    if (c.comentarios) lines.push(`Comentarios: ${c.comentarios}`);
+    lines.push('');
+  }
+  lines.push('— PEDIDO —');
   for (const it of items) {
     const name = it.name || it.title || `Producto ${it.id}`;
     const qty = Math.max(1, parseInt(it.quantity, 10) || 1);
@@ -58,13 +70,8 @@ function buildWhatsAppText(items, meta) {
   }
   lines.push('');
   if (meta?.total != null && Number.isFinite(Number(meta.total))) {
-    lines.push(`Total: $${Number(meta.total).toLocaleString('es-AR')}`);
+    lines.push(`TOTAL: $${Number(meta.total).toLocaleString('es-AR')}`);
   }
-  lines.push('');
-  lines.push('Nombre:');
-  lines.push('Dirección:');
-  lines.push('Localidad:');
-  lines.push('Forma de pago:');
   return lines.join('\n');
 }
 
@@ -102,7 +109,8 @@ export default async function handler(req, res) {
     // 2) Armar link de WhatsApp
     const phone = process.env.WHATSAPP_PHONE || '5493543560057'; // +54 9 3543 56-0057
     const total = items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 1), 0);
-    const text = buildWhatsAppText(items, { total });
+    const customer = input?.customer && typeof input.customer === 'object' ? input.customer : null;
+    const text = buildWhatsAppText(items, { total, customer });
     const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 
     return res.status(200).json({ success: true, whatsapp_url: whatsappUrl });

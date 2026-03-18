@@ -14,6 +14,10 @@
             font-family: 'Space Grotesk', sans-serif;
             min-height: 100vh;
         }
+        .top-shipping-banner { background: #fff; color: #333; padding: 10px 0; overflow: hidden; white-space: nowrap; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.5px; border-bottom: 1px solid #eee; }
+        .top-shipping-banner .marquee-wrap { display: inline-block; padding-left: 100%; animation: marquee 18s linear infinite; }
+        .top-shipping-banner .marquee-content { display: inline-block; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
         .admin-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -55,6 +59,7 @@
         .btn:hover { background: #fff; transform: translateY(-1px); }
         .btn-danger { background: #dc3545; color: white; }
         .btn-danger:hover { background: #c82333; }
+        .btn-sm { padding: 8px 14px; font-size: 0.9em; }
         .btn-secondary { background: #555; color: #d4af37; }
         .products-table {
             width: 100%;
@@ -107,6 +112,9 @@
             border-color: #d4af37;
         }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-section-label { color: #d4af37; font-size: 0.95em; margin-bottom: 4px; }
+        .form-hint { font-size: 0.8em; opacity: 0.7; margin: 4px 0 8px; }
+        .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px 20px; margin-top: 8px; }
         .checkbox-group { display: flex; align-items: center; gap: 10px; }
         .upload-area {
             border: 2px dashed #d4af37;
@@ -183,15 +191,67 @@
         .success { color: #28a745; }
         .error { color: #dc3545; }
         .loading { opacity: .6; pointer-events: none; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+        .badge-pendiente { background: rgba(220, 53, 69, 0.25); color: #e74c3c; }
+        .badge-pagado { background: rgba(40, 167, 69, 0.25); color: #28a745; }
+        .badge-enviado { background: rgba(0, 123, 255, 0.25); color: #5dade2; }
+        .badge-cancelado { background: rgba(108, 117, 125, 0.35); color: #adb5bd; }
+        .orders-status-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+        .orders-status-btns .btn { padding: 6px 12px; font-size: 0.85rem; }
+        .order-resumen { min-width: 220px; max-width: 320px; font-size: 0.9em; white-space: normal; max-height: 120px; overflow-y: auto; overflow-x: hidden; padding: 8px; border: 1px solid rgba(212,175,55,0.25); border-radius: 6px; background: rgba(0,0,0,0.25); }
+        .order-resumen .order-item { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .order-resumen .order-item:last-child { border-bottom: none; }
+        .order-resumen .order-item-subtotal { color: #d4af37; margin-left: 6px; }
     </style>
 </head>
 <body>
+    <div class="top-shipping-banner" role="marquee" aria-label="Envíos a todo el país - cotización por WhatsApp">
+        <span class="marquee-wrap">
+            <span class="marquee-content">Envíos a todo el país - cotización por WhatsApp &nbsp;&nbsp;•&nbsp;&nbsp; Envíos a todo el país - cotización por WhatsApp &nbsp;&nbsp;•&nbsp;&nbsp; Envíos a todo el país - cotización por WhatsApp &nbsp;&nbsp;•&nbsp;&nbsp; Envíos a todo el país - cotización por WhatsApp &nbsp;&nbsp;•&nbsp;&nbsp; Envíos a todo el país - cotización por WhatsApp &nbsp;&nbsp;•&nbsp;&nbsp;</span>
+        </span>
+    </div>
     <div class="admin-container">
         <div class="admin-header">
             <h1 class="admin-title">2302 Admin <i class="fas fa-crown"></i></h1>
             <button class="logout-btn" onclick="logout()">
                 <i class="fas fa-sign-out-alt"></i> Salir
             </button>
+        </div>
+
+        <!-- Ventas / Pedidos -->
+        <div class="form-container" style="margin-bottom: 40px;">
+            <h2 class="section-title"><i class="fas fa-shopping-cart"></i> Ventas / Pedidos <span id="ordersCount" class="success"></span></h2>
+            <p class="form-hint" style="margin-bottom: 16px;">Lista de pedidos. Podés marcar cada uno como <strong>Pendiente de pago</strong>, <strong>Pagado</strong> o <strong>Enviado</strong>.</p>
+            <div id="ordersList">
+                <div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;color:#d4af37;"></i> Cargando pedidos…</div>
+            </div>
+        </div>
+
+        <!-- Categorías (se usan en productos y en el filtro de la tienda) -->
+        <div class="form-container">
+            <h2 class="section-title"><i class="fas fa-tags"></i> Categorías</h2>
+            <p class="form-hint" style="margin-bottom: 16px;">Las categorías aparecen en el filtro de la página principal y al crear/editar productos.</p>
+            <form id="categoryForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" id="catNombre" required placeholder="Ej: Rostro">
+                    </div>
+                    <div class="form-group">
+                        <label>Slug (opcional)</label>
+                        <input type="text" id="catSlug" placeholder="Ej: face (se genera solo si se deja vacío)">
+                    </div>
+                </div>
+                <button type="submit" class="btn" id="categorySubmitBtn" style="margin-top: 8px;">
+                    <i class="fas fa-plus"></i> Agregar categoría
+                </button>
+            </form>
+            <div style="margin-top: 24px;">
+                <h3 class="section-title" style="font-size: 1.1rem; margin-bottom: 12px;">Listado de categorías</h3>
+                <div id="categoriesList">
+                    <div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;color:#d4af37;"></i> Cargando…</div>
+                </div>
+            </div>
         </div>
 
         <div class="form-container">
@@ -213,9 +273,7 @@
                     <div class="form-group">
                         <label>Categoría</label>
                         <select id="category">
-                            <option value="face">Rostro</option>
-                            <option value="body">Cuerpo</option>
-                            <option value="hair">Cabello</option>
+                            <option value="">Cargando…</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -256,15 +314,48 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Destacar</label>
+                        <label class="form-section-label">Checks bajo el precio (ficha del producto)</label>
+                        <p class="form-hint">Estos valores se muestran como líneas con ✓ debajo del precio.</p>
                         <div class="form-row">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="popular">
-                                <label for="popular">Popular</label>
+                                <label for="popular">Producto destacado</label>
                             </div>
                             <div class="checkbox-group">
                                 <input type="checkbox" id="offer">
-                                <label for="offer">Oferta</label>
+                                <label for="offer">En oferta especial</label>
+                            </div>
+                        </div>
+                        <div class="form-group" id="offerPriceWrap" style="margin-top: 10px; display: none;">
+                            <label for="precioOferta">Precio de oferta ($) *</label>
+                            <input type="number" id="precioOferta" step="0.01" min="0" placeholder="Ej: 4500">
+                            <p class="form-hint">Si está en oferta, acá va el precio rebajado. En la tienda se verá el precio normal tachado y este como precio final.</p>
+                        </div>
+                        <p class="form-hint" style="margin-top: 8px;">Categoría y Tamaño (arriba) también generan un check.</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-section-label">Mostrar secciones desplegables en la ficha</label>
+                        <p class="form-hint">Activa o desactiva cada cuadro que se abre debajo (Descripción, Tamaño, etc.).</p>
+                        <div class="check-grid">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showDescription" checked>
+                                <label for="showDescription">Descripción</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showShortDescription" checked>
+                                <label for="showShortDescription">Descripción corta</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showSize" checked>
+                                <label for="showSize">Tamaño</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showIngredients" checked>
+                                <label for="showIngredients">Ingredientes</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="showHowToUse" checked>
+                                <label for="showHowToUse">Modo de uso</label>
                             </div>
                         </div>
                     </div>
@@ -290,9 +381,62 @@
                 </div>
             </div>
         </div>
+
+        <!-- Colección (tarjetas de la sección Colección en la home) -->
+        <div class="form-container" style="margin-top: 40px;">
+            <h2 class="section-title"><i class="fas fa-images"></i> Colección (tarjetas de la home)</h2>
+            <p class="form-hint" style="margin-bottom: 20px;">Estas tarjetas se muestran en la sección "Colección" de la página principal. Orden: número menor = aparece primero.</p>
+            <form id="collectionForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Título *</label>
+                        <input type="text" id="collTitulo" required placeholder="Ej: Serum Vitamina C">
+                    </div>
+                    <div class="form-group">
+                        <label>Orden (número)</label>
+                        <input type="number" id="collOrden" value="0" min="0" placeholder="0">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>URL de imagen *</label>
+                        <input type="text" id="collImagenUrl" placeholder="https://...">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Categoría de destino (opcional)</label>
+                        <select id="collLink">
+                            <option value="">— Sin enlace —</option>
+                        </select>
+                        <p class="form-hint">Al hacer clic en la tarjeta en la home, se irá a Productos filtrado por esta categoría.</p>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Descripción / subtítulo (opcional)</label>
+                        <input type="text" id="collDescripcion" placeholder="Texto que aparece debajo del título">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="collActivo" checked> Visible en la home
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn" id="collectionSubmitBtn" style="margin-top: 16px;">
+                    <i class="fas fa-save"></i> Guardar tarjeta
+                </button>
+            </form>
+        </div>
+        <div class="products-section" style="margin-top: 24px;">
+            <h2 class="section-title">
+                <i class="fas fa-list"></i> Tarjetas de colección 
+                <span id="collectionCount" class="success"></span>
+            </h2>
+            <div id="collectionList">
+                <div class="empty-state" id="collectionEmptyState">
+                    <i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;color:#d4af37;"></i>
+                    <p>Cargando colección…</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- Edit Modal Producto -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -303,10 +447,54 @@
         </div>
     </div>
 
+    <!-- Edit Modal Colección -->
+    <div id="editCollectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar tarjeta de colección</h3>
+                <button class="close-btn" onclick="closeEditCollectionModal()">&times;</button>
+            </div>
+            <form id="editCollectionForm">
+                <input type="hidden" id="editCollId">
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" id="editCollTitulo" required>
+                </div>
+                <div class="form-group">
+                    <label>Orden</label>
+                    <input type="number" id="editCollOrden" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label>URL de imagen *</label>
+                    <input type="text" id="editCollImagenUrl">
+                </div>
+                <div class="form-group">
+                    <label>Categoría de destino (opcional)</label>
+                    <select id="editCollLink">
+                        <option value="">— Sin enlace —</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Descripción (opcional)</label>
+                    <input type="text" id="editCollDescripcion">
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="editCollActivo" checked>
+                    <label for="editCollActivo">Visible en la home</label>
+                </div>
+                <button type="submit" class="btn"><i class="fas fa-save"></i> Guardar</button>
+            </form>
+        </div>
+    </div>
+
 <script>
         let products = [];
         let editingId = null;
         let uploadUrl = '';
+        let collectionItems = [];
+        let editingCollectionId = null;
+        let categories = [];
+        let ordersList = [];
 
         // Verificar autenticación al cargar
         const token = localStorage.getItem('adminToken');
@@ -342,6 +530,207 @@
         }
 
         // Load products: muestra "Cargando...", fetch con timeout, luego tabla o vacío + botón Reintentar
+        async function loadCategories() {
+            const sel = document.getElementById('category');
+            const listEl = document.getElementById('categoriesList');
+            if (sel) sel.innerHTML = '<option value="">Cargando…</option>';
+            try {
+                const res = await fetch('/api/admin?resource=categories', { cache: 'no-store', headers: getAuthHeaders() });
+                const data = await safeJson(res);
+                if (res.status === 401) {
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin.html';
+                    return;
+                }
+                categories = Array.isArray(data.categories) ? data.categories.filter(Boolean) : [];
+                var catOptions = '<option value="">— Sin enlace —</option>' + categories.map(function(c) { return '<option value="' + (c.slug || '').replace(/"/g, '&quot;') + '">' + (c.nombre || c.slug || '').replace(/</g, '&lt;') + '</option>'; }).join('');
+                if (sel) {
+                    sel.innerHTML = '<option value="">— Seleccionar —</option>' + categories.map(function(c) { return '<option value="' + (c.slug || '').replace(/"/g, '&quot;') + '">' + (c.nombre || c.slug || '').replace(/</g, '&lt;') + '</option>'; }).join('');
+                }
+                var collLinkSel = document.getElementById('collLink');
+                var editCollLinkSel = document.getElementById('editCollLink');
+                if (collLinkSel) collLinkSel.innerHTML = catOptions;
+                if (editCollLinkSel) editCollLinkSel.innerHTML = catOptions;
+                if (listEl) {
+                    if (!categories.length) {
+                        listEl.innerHTML = '<div class="empty-state"><p>No hay categorías. Agrega una arriba.</p></div>';
+                    } else {
+                        listEl.innerHTML = '<table class="products-table"><thead><tr><th>Nombre</th><th>Slug</th><th>Acciones</th></tr></thead><tbody>' +
+                            categories.map(c => c ? '<tr><td>' + (c.nombre || '—').replace(/</g, '&lt;') + '</td><td><code>' + (c.slug || '—').replace(/</g, '&lt;') + '</code></td><td><button type="button" class="btn btn-danger btn-sm delete-cat-btn" data-id="' + (c.id ?? '') + '"><i class="fas fa-trash"></i> Quitar</button></td></tr>' : '').filter(Boolean).join('') +
+                            '</tbody></table>';
+                    }
+                }
+            } catch (err) {
+                console.error('Load categories:', err);
+                categories = [];
+                if (sel) sel.innerHTML = '<option value="">Error al cargar</option>';
+                if (listEl) listEl.innerHTML = '<div class="empty-state"><p>No se pudieron cargar las categorías.</p><button type="button" class="btn" onclick="loadCategories()">Reintentar</button></div>';
+            }
+        }
+
+        document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('categorySubmitBtn');
+            const nombre = document.getElementById('catNombre').value.trim();
+            const slug = document.getElementById('catSlug').value.trim();
+            if (!nombre) { alert('Escribe el nombre de la categoría.'); return; }
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            try {
+                const res = await fetch('/api/admin?resource=categories', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ nombre, slug: slug || undefined })
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error');
+                document.getElementById('categoryForm').reset();
+                loadCategories();
+            } catch (err) {
+                alert(err.message || 'Error al agregar');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plus"></i> Agregar categoría';
+            }
+        });
+
+        async function deleteCategory(id) {
+            if (!confirm('¿Eliminar esta categoría?')) return;
+            try {
+                const res = await fetch('/api/admin?resource=categories&id=' + encodeURIComponent(id), { method: 'DELETE', headers: getAuthHeaders() });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error');
+                loadCategories();
+            } catch (err) {
+                alert(err.message || 'Error al eliminar');
+            }
+        }
+
+        document.getElementById('categoriesList').addEventListener('click', (e) => {
+            const btn = e.target.closest('.delete-cat-btn');
+            if (btn) { e.preventDefault(); deleteCategory(btn.getAttribute('data-id')); }
+        });
+
+        // --- Ventas / Pedidos ---
+        async function loadOrders() {
+            const container = document.getElementById('ordersList');
+            const countEl = document.getElementById('ordersCount');
+            if (!container) return;
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;color:#d4af37;"></i> Cargando pedidos…</div>';
+            countEl.textContent = '';
+            try {
+                const res = await fetch('/api/orders', { cache: 'no-store', headers: getAuthHeaders() });
+                const data = await safeJson(res);
+                if (res.status === 401) {
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin.html';
+                    return;
+                }
+                ordersList = Array.isArray(data.orders) ? data.orders.filter(Boolean) : [];
+                renderOrders();
+            } catch (err) {
+                console.error('Load orders:', err);
+                ordersList = [];
+                container.innerHTML = '<div class="empty-state"><p>No se pudieron cargar los pedidos.</p><button type="button" class="btn" onclick="loadOrders()">Reintentar</button></div>';
+                countEl.textContent = '';
+            }
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('ordersList');
+            const countEl = document.getElementById('ordersCount');
+            if (!container) return;
+            countEl.textContent = ordersList.length ? '(' + ordersList.length + ')' : '';
+            if (!ordersList.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-shopping-cart" style="font-size:4rem;opacity:.3;margin-bottom:16px;"></i><h3>No hay pedidos</h3><p>Los pedidos que los clientes envíen desde el checkout aparecerán aquí.</p></div>';
+                return;
+            }
+            const estadoLabel = { pendiente_pago: 'Pendiente de pago', pagado: 'Pagado', enviado: 'Enviado', cancelado: 'Cancelado' };
+            const estadoClass = { pendiente_pago: 'badge-pendiente', pagado: 'badge-pagado', enviado: 'badge-enviado', cancelado: 'badge-cancelado' };
+            container.innerHTML = `
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Teléfono</th>
+                            <th>Dirección / Localidad</th>
+                            <th>Resumen</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ordersList.map(o => {
+                            const items = Array.isArray(o.items) ? o.items : [];
+                            const itemsHtml = items.length
+                                ? items.map(function(i) {
+                                    const qty = i.cantidad ?? i.quantity ?? 1;
+                                    const name = (i.nombre || i.name || '—').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                                    const sub = i.subtotal != null ? '$' + Number(i.subtotal).toLocaleString() : '';
+                                    return '<div class="order-item">' + qty + '× ' + name + (sub ? '<span class="order-item-subtotal">' + sub + '</span>' : '') + '</div>';
+                                  }).join('')
+                                : '—';
+                            const totalStr = o.total != null ? '$' + Number(o.total).toLocaleString() : '—';
+                            const estado = o.estado || 'pendiente_pago';
+                            return `
+                            <tr>
+                                <td>${o.id ?? '—'}</td>
+                                <td>${(o.cliente_nombre || '—').substring(0, 25)}${(o.cliente_nombre || '').length > 25 ? '…' : ''}<br><small style="opacity:.7">${(o.cliente_email || '').substring(0, 30)}</small></td>
+                                <td>${(o.cliente_telefono || '—').substring(0, 18)}</td>
+                                <td>${(o.direccion || '—').substring(0, 25)}${(o.direccion || '').length > 25 ? '…' : ''}<br><small>${(o.localidad || '')}</small></td>
+                                <td class="order-resumen">${itemsHtml}</td>
+                                <td><span class="price">${totalStr}</span></td>
+                                <td><span class="badge ${estadoClass[estado] || 'badge-pendiente'}">${estadoLabel[estado] || estado}</span></td>
+                                <td>
+                                    <div class="orders-status-btns">
+                                        <button type="button" class="btn btn-sm ${estado === 'pendiente_pago' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'pendiente_pago')" title="Pendiente de pago">Pendiente</button>
+                                        <button type="button" class="btn btn-sm ${estado === 'pagado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'pagado')" title="Cliente pagó">Pagado</button>
+                                        <button type="button" class="btn btn-sm ${estado === 'enviado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'enviado')" title="Enviado">Enviado</button>
+                                        <button type="button" class="btn btn-sm btn-danger ${estado === 'cancelado' ? 'btn-secondary' : ''}" onclick="setOrderStatus('${String(o.id).replace(/'/g, "\\'")}', 'cancelado')" title="Cancelar compra">Cancelar</button>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteOrder('${String(o.id).replace(/'/g, "\\'")}')" title="Eliminar pedido"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>`;
+        }
+
+        async function setOrderStatus(orderId, estado) {
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ id: orderId, estado })
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al actualizar');
+                const idx = ordersList.findIndex(o => o.id == orderId);
+                if (idx >= 0) ordersList[idx].estado = estado;
+                renderOrders();
+            } catch (err) {
+                alert('Error: ' + (err.message || 'No se pudo actualizar el estado'));
+            }
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) return;
+            try {
+                const res = await fetch('/api/orders?id=' + encodeURIComponent(orderId), {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al eliminar');
+                ordersList = ordersList.filter(o => o.id != orderId && String(o.id) !== String(orderId));
+                renderOrders();
+            } catch (err) {
+                alert('Error: ' + (err.message || 'No se pudo eliminar el pedido'));
+            }
+        }
+
         async function loadProducts() {
             const container = document.getElementById('productsList');
             const countEl = document.getElementById('productsCount');
@@ -359,7 +748,7 @@
             const timeoutId = setTimeout(() => controller.abort(), 15000);
 
             try {
-                const res = await fetch('/api/admin/products', { 
+                const res = await fetch('/api/admin?resource=products', { 
                     cache: 'no-store', 
                     signal: controller.signal,
                     headers: getAuthHeaders()
@@ -376,7 +765,7 @@
                     throw new Error(data.message || 'Error al cargar');
                 }
                 const list = Array.isArray(data.products) ? data.products : (Array.isArray(data) ? data : []);
-                products = list;
+                products = list.filter(Boolean);
                 renderProducts();
             } catch (err) {
                 clearTimeout(timeoutId);
@@ -478,6 +867,8 @@ ${products.map(p => {
 
             try {
                 const imageUrlInput = document.getElementById('imageUrlInput').value?.trim();
+                const offerChecked = document.getElementById('offer').checked;
+                const precioOfertaVal = document.getElementById('precioOferta').value;
                 const productData = {
                     name: document.getElementById('name').value,
                     price: document.getElementById('price').value,
@@ -490,10 +881,16 @@ ${products.map(p => {
                     howToUse: document.getElementById('howToUse').value,
                     image_url: imageUrlInput || uploadUrl || '',
                     popular: document.getElementById('popular').checked,
-                    offer: document.getElementById('offer').checked
+                    offer: offerChecked,
+                    precio_oferta: offerChecked && precioOfertaVal !== '' ? parseFloat(precioOfertaVal) : null,
+                    showDescription: document.getElementById('showDescription').checked,
+                    showShortDescription: document.getElementById('showShortDescription').checked,
+                    showSize: document.getElementById('showSize').checked,
+                    showIngredients: document.getElementById('showIngredients').checked,
+                    showHowToUse: document.getElementById('showHowToUse').checked
                 };
 
-                const res = await fetch('/api/admin/products', {
+                const res = await fetch('/api/admin?resource=products', {
                     method: editingId ? 'PUT' : 'POST',
                     headers: getAuthHeaders(),
                     body: JSON.stringify(editingId ? { id: editingId, ...productData } : productData)
@@ -535,6 +932,11 @@ ${products.map(p => {
                 btn.disabled = false;
                 document.body.classList.remove('loading');
             }
+        });
+
+        // Mostrar/ocultar precio de oferta al marcar "En oferta especial"
+        document.getElementById('offer').addEventListener('change', function() {
+            document.getElementById('offerPriceWrap').style.display = this.checked ? 'block' : 'none';
         });
 
         // Image upload
@@ -622,7 +1024,14 @@ ${products.map(p => {
             document.getElementById('howToUse').value = product.howToUse;
             document.getElementById('popular').checked = product.popular || false;
             document.getElementById('offer').checked = product.offer || false;
-            
+            document.getElementById('offerPriceWrap').style.display = product.offer ? 'block' : 'none';
+            document.getElementById('precioOferta').value = (product.precio_oferta != null && product.precio_oferta !== '') ? product.precio_oferta : '';
+            document.getElementById('showDescription').checked = product.showDescription !== false;
+            document.getElementById('showShortDescription').checked = product.showShortDescription !== false;
+            document.getElementById('showSize').checked = product.showSize !== false;
+            document.getElementById('showIngredients').checked = product.showIngredients !== false;
+            document.getElementById('showHowToUse').checked = product.showHowToUse !== false;
+
             const imageUrl = product.image_url || product.imagen_url || '';
             document.getElementById('imageUrlInput').value = imageUrl;
             uploadUrl = imageUrl;
@@ -650,7 +1059,7 @@ ${products.map(p => {
             const idNorm = id != null ? Number(id) : NaN;
             if (isNaN(idNorm)) return;
             try {
-                const res = await fetch(`/api/admin/products?id=${idNorm}`, {
+                const res = await fetch(`/api/admin?resource=products&id=${idNorm}`, {
                     method: 'DELETE',
                     headers: getAuthHeaders()
                 });
@@ -703,10 +1112,169 @@ ${products.map(p => {
 
         window.loadProducts = loadProducts;
 
-        // Init: enlazar botón Reintentar del HTML inicial y cargar productos (sin reintento automático para evitar bucle)
+        // --- Colección ---
+        async function loadCollection() {
+            const container = document.getElementById('collectionList');
+            const countEl = document.getElementById('collectionCount');
+            if (!container) return;
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;color:#d4af37;"></i><p>Cargando colección…</p></div>';
+            countEl.textContent = '';
+            try {
+                const res = await fetch('/api/admin?resource=collection', { cache: 'no-store', headers: getAuthHeaders() });
+                const data = await safeJson(res);
+                if (res.status === 401) {
+                    alert('Sesión expirada.');
+                    localStorage.removeItem('adminToken');
+                    window.location.href = '/admin.html';
+                    return;
+                }
+                collectionItems = Array.isArray(data.items) ? data.items.filter(Boolean) : [];
+                renderCollection();
+            } catch (err) {
+                console.error('Load collection:', err);
+                collectionItems = [];
+                container.innerHTML = '<div class="empty-state"><p>No se pudo cargar la colección.</p><button type="button" class="btn" onclick="loadCollection()">Reintentar</button></div>';
+                countEl.textContent = '';
+            }
+        }
+
+        function renderCollection() {
+            const container = document.getElementById('collectionList');
+            const countEl = document.getElementById('collectionCount');
+            if (!container) return;
+            countEl.textContent = collectionItems.length ? '(' + collectionItems.length + ')' : '';
+            if (!collectionItems.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-images" style="font-size:4rem;opacity:.3;margin-bottom:20px;"></i><h3>No hay tarjetas de colección</h3><p>Añade tarjetas arriba para que aparezcan en la sección Colección de la home.</p></div>';
+                return;
+            }
+            container.innerHTML = `
+                <table class="products-table">
+                    <thead><tr><th>Orden</th><th>Imagen</th><th>Título</th><th>Enlace</th><th>Acciones</th></tr></thead>
+                    <tbody>
+                        ${collectionItems.map(c => `
+                            <tr>
+                                <td>${c.orden != null ? c.orden : 0}</td>
+                                <td>${c.imagen_url ? '<img src="' + String(c.imagen_url).replace(/"/g, '&quot;') + '" style="width:50px;height:50px;object-fit:cover;border-radius:4px;" onerror="this.outerHTML=\'<span style=color:#666>—</span>\'">' : '—'}</td>
+                                <td>${(c.titulo || '—').substring(0, 40)}${(c.titulo || '').length > 40 ? '…' : ''}</td>
+                                <td>${(c.link || '—').substring(0, 30)}${(c.link || '').length > 30 ? '…' : ''}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button type="button" class="btn btn-secondary edit-coll-btn" data-id="${c && c.id != null ? c.id : ''}"><i class="fas fa-edit"></i></button>
+                                        <button type="button" class="btn btn-danger delete-coll-btn" data-id="${c && c.id != null ? c.id : ''}"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        document.getElementById('collectionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('collectionSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            try {
+                const payload = {
+                    titulo: document.getElementById('collTitulo').value.trim(),
+                    imagen_url: document.getElementById('collImagenUrl').value.trim(),
+                    link: document.getElementById('collLink').value.trim(),
+                    descripcion: document.getElementById('collDescripcion').value.trim(),
+                    orden: parseInt(document.getElementById('collOrden').value, 10) || 0,
+                    activo: document.getElementById('collActivo').checked
+                };
+                const res = await fetch('/api/admin?resource=collection', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al guardar');
+                alert('Tarjeta creada.');
+                document.getElementById('collectionForm').reset();
+                document.getElementById('collOrden').value = 0;
+                loadCollection();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Guardar tarjeta';
+            }
+        });
+
+        function editCollection(id) {
+            const c = collectionItems.find(x => x.id == id || String(x.id) === String(id));
+            if (!c) return;
+            editingCollectionId = c.id;
+            document.getElementById('editCollId').value = c.id;
+            document.getElementById('editCollTitulo').value = c.titulo || '';
+            document.getElementById('editCollOrden').value = c.orden != null ? c.orden : 0;
+            document.getElementById('editCollImagenUrl').value = c.imagen_url || '';
+            document.getElementById('editCollLink').value = c.link || '';
+            document.getElementById('editCollDescripcion').value = c.descripcion || '';
+            document.getElementById('editCollActivo').checked = c.activo !== false;
+            document.getElementById('editCollectionModal').classList.add('active');
+        }
+
+        function closeEditCollectionModal() {
+            editingCollectionId = null;
+            document.getElementById('editCollectionModal').classList.remove('active');
+        }
+
+        document.getElementById('editCollectionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (editingCollectionId == null) return;
+            try {
+                const res = await fetch('/api/admin?resource=collection', {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        id: editingCollectionId,
+                        titulo: document.getElementById('editCollTitulo').value.trim(),
+                        imagen_url: document.getElementById('editCollImagenUrl').value.trim(),
+                        link: document.getElementById('editCollLink').value.trim(),
+                        descripcion: document.getElementById('editCollDescripcion').value.trim(),
+                        orden: parseInt(document.getElementById('editCollOrden').value, 10) || 0,
+                        activo: document.getElementById('editCollActivo').checked
+                    })
+                });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al actualizar');
+                closeEditCollectionModal();
+                loadCollection();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        async function deleteCollection(id) {
+            if (!confirm('¿Eliminar esta tarjeta de la colección?')) return;
+            try {
+                const res = await fetch('/api/admin?resource=collection&id=' + encodeURIComponent(id), { method: 'DELETE', headers: getAuthHeaders() });
+                const data = await safeJson(res);
+                if (!res.ok) throw new Error(data.message || 'Error al eliminar');
+                loadCollection();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        window.closeEditCollectionModal = closeEditCollectionModal;
+        document.getElementById('collectionList').addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.edit-coll-btn');
+            const delBtn = e.target.closest('.delete-coll-btn');
+            if (editBtn) { e.preventDefault(); editCollection(editBtn.getAttribute('data-id')); }
+            else if (delBtn) { e.preventDefault(); deleteCollection(delBtn.getAttribute('data-id')); }
+        });
+
+        // Init: cargar categorías primero (rellena el select de productos), luego productos, pedidos y colección
         var initialRetry = document.getElementById('retryLoadBtn');
         if (initialRetry) initialRetry.addEventListener('click', loadProducts);
+        loadCategories();
         loadProducts();
+        loadOrders();
+        loadCollection();
     </script>
 </body>
 </html>
