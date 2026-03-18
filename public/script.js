@@ -148,7 +148,6 @@ function buildProductCardsHTML(productsToRender) {
                 <span class="product-category">${category}</span>
                 <h3 class="product-name">${name}</h3>
                 ${priceBlock}
-                ${stock !== null ? `<p class="product-description" style="margin-bottom:12px;">Stock: <strong>${stock}</strong></p>` : ''}
                 <button class="product-btn" ${outOfStock ? 'disabled style="opacity:.6;cursor:not-allowed;"' : ''} onclick="event.stopPropagation(); addToCart(${JSON.stringify(product.id)}, event)">
                     ${outOfStock ? 'SIN STOCK' : 'AGREGAR AL CARRITO'}
                 </button>

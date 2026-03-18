@@ -781,13 +781,6 @@
                     // Selector de cantidad
                     const stockRaw = product.stock ?? product.Stock ?? product.cantidad ?? product.qty ?? null;
                     const stock = (stockRaw === null || stockRaw === undefined || stockRaw === '') ? null : Math.max(0, Math.trunc(Number(stockRaw) || 0));
-                    if (stock !== null) {
-                        const stockNote = document.createElement('div');
-                        stockNote.style.cssText = 'margin: 10px 0 0; color:#a0a0a0; font-size:0.9rem;';
-                        stockNote.textContent = 'Stock disponible: ' + stock;
-                        const qtySection = document.querySelector('.quantity-selector');
-                        if (qtySection) qtySection.insertAdjacentElement('afterend', stockNote);
-                    }
                     const qtyValueEl = document.getElementById('qty-value');
                     const qtyMinus = document.getElementById('qty-minus');
                     const qtyPlus = document.getElementById('qty-plus');
