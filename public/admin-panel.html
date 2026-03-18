@@ -207,6 +207,10 @@
                         <input type="number" id="price" step="0.01" min="0" required>
                     </div>
                     <div class="form-group">
+                        <label>Stock (unidades)</label>
+                        <input type="number" id="stock" step="1" min="0" placeholder="ej: 15">
+                    </div>
+                    <div class="form-group">
                         <label>Categoría</label>
                         <select id="category">
                             <option value="face">Rostro</option>
@@ -418,6 +422,7 @@
                             <th>Imagen</th>
                             <th>Nombre</th>
                             <th>Precio</th>
+                            <th>Stock</th>
                             <th>Categoría</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -427,6 +432,8 @@
 ${products.map(p => {
                             const price = p.price ?? p.precio;
                             const priceStr = (price != null && price !== '') ? Number(price).toLocaleString() : '—';
+                            const stockVal = (p.stock ?? p.Stock ?? p.cantidad ?? p.qty);
+                            const stockStr = (stockVal === null || stockVal === undefined || stockVal === '') ? '—' : String(stockVal);
                             return `
                             <tr>
                                 <td>${p.id ?? '—'}</td>
@@ -435,6 +442,7 @@ ${products.map(p => {
                                 </td>
                                 <td>${(p.name ?? p.nombre) || '—'}</td>
                                 <td><span class="price">$${priceStr}</span></td>
+                                <td>${stockStr}</td>
                                 <td>${(p.category ?? p.categoria) || '—'}</td>
                                 <td>
                                     ${p.popular ? '<span class="success">⭐ Popular</span>' : ''}
@@ -473,6 +481,7 @@ ${products.map(p => {
                 const productData = {
                     name: document.getElementById('name').value,
                     price: document.getElementById('price').value,
+                    stock: document.getElementById('stock').value,
                     category: document.getElementById('category').value,
                     shortDescription: document.getElementById('shortDescription').value,
                     description: document.getElementById('description').value,
@@ -604,6 +613,7 @@ ${products.map(p => {
             // Populate form
             document.getElementById('name').value = product.name;
             document.getElementById('price').value = product.price;
+            document.getElementById('stock').value = (product.stock ?? '');
             document.getElementById('category').value = product.category || 'face';
             document.getElementById('shortDescription').value = product.shortDescription;
             document.getElementById('description').value = product.description;

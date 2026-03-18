@@ -69,9 +69,57 @@
                     document.getElementById('loading-img').style.display = 'none';
 
                     // Configurar botón de carrito
-                    document.getElementById('add-btn').onclick = () => {
-                        // Reutilizamos la lógica de tu script.js si está cargado, 
-                        // o simplemente avisamos que se agregó.
+                    // Cantidad + validación de stock
+                    const stockRaw = product.stock ?? product.Stock ?? product.cantidad ?? product.qty ?? null;
+                    const stock = (stockRaw === null || stockRaw === undefined || stockRaw === '') ? null : Math.max(0, Math.trunc(Number(stockRaw) || 0));
+
+                    const btn = document.getElementById('add-btn');
+                    const qtyWrap = document.createElement('div');
+                    qtyWrap.style.display = 'flex';
+                    qtyWrap.style.gap = '12px';
+                    qtyWrap.style.alignItems = 'center';
+                    qtyWrap.style.marginBottom = '16px';
+                    qtyWrap.innerHTML = `
+                      <label style="font-size:.75rem;letter-spacing:2px;color:#c9a962;">CANTIDAD</label>
+                      <input id="qty-input" type="number" min="1" step="1" value="1" style="flex:1; padding:12px; background:#000; border:1px solid #1a1a1a; color:#fff; border-radius:4px;">
+                    `;
+                    const infoSide = document.querySelector('.product-info-side');
+                    infoSide.insertBefore(qtyWrap, btn);
+
+                    const qtyInput = document.getElementById('qty-input');
+                    if (stock !== null) {
+                        qtyInput.max = String(Math.max(1, stock));
+                        const stockEl = document.createElement('div');
+                        stockEl.style.cssText = 'margin:-6px 0 18px; font-size:.85rem; color:#a0a0a0;';
+                        stockEl.textContent = `Stock disponible: ${stock}`;
+                        infoSide.insertBefore(stockEl, btn);
+                        if (stock <= 0) {
+                            btn.disabled = true;
+                            btn.textContent = 'SIN STOCK';
+                            btn.style.opacity = '0.6';
+                            btn.style.cursor = 'not-allowed';
+                        }
+                    }
+
+                    btn.onclick = () => {
+                        const qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+                        if (stock !== null && qty > stock) {
+                            alert(`No hay stock suficiente. Disponible: ${stock}`);
+                            return;
+                        }
+                        // Guardar en carrito simple en localStorage (misma clave que script.js)
+                        const key = '2302_cart';
+                        let cart = [];
+                        try { cart = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
+                        const idx = cart.findIndex(i => i.id == product.id);
+                        const current = idx >= 0 ? (cart[idx].quantity || 0) : 0;
+                        if (stock !== null && (current + qty) > stock) {
+                            alert(`No hay stock suficiente. Disponible: ${stock}`);
+                            return;
+                        }
+                        const item = { ...product, quantity: current + qty };
+                        if (idx >= 0) cart[idx] = item; else cart.push(item);
+                        localStorage.setItem(key, JSON.stringify(cart));
                         alert('Producto agregado al carrito');
                     };
                 } else {

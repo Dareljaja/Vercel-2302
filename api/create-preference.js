@@ -1,8 +1,67 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
+import { createClient } from '@supabase/supabase-js';
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADOPAGO_TOKEN
 });
+
+function getSupabaseAdmin() {
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+}
+
+async function reserveStockOrFail(supabase, items) {
+  // Reserva stock al iniciar checkout (antes del pago).
+  // Esto evita sobreventa aunque el pago aún no esté confirmado.
+  for (const it of items) {
+    const id = Number(it.id);
+    const qty = Math.max(1, parseInt(it.quantity, 10) || 1);
+    if (!Number.isFinite(id)) {
+      throw new Error('Producto inválido');
+    }
+
+    let attempts = 0;
+    while (attempts < 3) {
+      attempts += 1;
+      const { data: row, error: selErr } = await supabase
+        .from('productos')
+        .select('id, stock, nombre')
+        .eq('id', id)
+        .single();
+
+      if (selErr) throw new Error(selErr.message || 'No se pudo leer stock');
+      const currentStock = row?.stock;
+      if (currentStock === null || currentStock === undefined) {
+        // Si no se usa stock para este producto, no bloqueamos la compra
+        break;
+      }
+      if (typeof currentStock !== 'number') {
+        throw new Error('Stock inválido en producto');
+      }
+      if (currentStock < qty) {
+        const name = row?.nombre ? ` (${row.nombre})` : '';
+        throw new Error(`Sin stock suficiente${name}. Disponible: ${currentStock}`);
+      }
+
+      const nextStock = currentStock - qty;
+      const { data: updated, error: updErr } = await supabase
+        .from('productos')
+        .update({ stock: nextStock })
+        .eq('id', id)
+        .eq('stock', currentStock) // control de concurrencia
+        .select('id')
+        .maybeSingle();
+
+      if (updErr) throw new Error(updErr.message || 'No se pudo actualizar stock');
+      if (updated?.id) {
+        break; // reservado OK
+      }
+      // Si no actualizó, otro checkout cambió stock: reintentar
+    }
+  }
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,11 +81,19 @@ export default async function handler(req, res) {
       id: item.id,
       title: item.name,
       description: item.description || '',
-      quantity: item.quantity,
+      quantity: Math.max(1, parseInt(item.quantity, 10) || 1),
       unit_price: parseFloat(item.price),
       currency_id: 'ARS',
       picture_url: item.image || ''
     }));
+
+    const supabase = getSupabaseAdmin();
+    if (!supabase) {
+      return res.status(500).json({ error: 'Configura SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en Vercel' });
+    }
+
+    // Reservar/descontar stock antes de crear la preferencia
+    await reserveStockOrFail(supabase, items);
 
     const preference = new Preference(client).create({
       body: {

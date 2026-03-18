@@ -74,6 +74,7 @@ export default async function handler(req, res) {
         size: p.tamaño ?? p.size,
         ingredients: p.ingredientes ?? p.ingredients,
         howToUse: p['modo de uso'] ?? p['mododeuso'] ?? p.howToUse,
+        stock: p.stock ?? p.Stock ?? p.cantidad ?? p.qty ?? null,
         popular: p.popular ?? false,
         offer: p.offer ?? false
       }));
@@ -84,6 +85,10 @@ export default async function handler(req, res) {
       // Create product — columnas en español como en tu tabla Supabase
       const input = req.body;
       const imagenUrl = sanitizeUrl(input.image_url ?? input.imagen_url);
+      const stockInput = input.stock;
+      const stockValue = stockInput === undefined || stockInput === null || stockInput === ''
+        ? null
+        : Math.max(0, parseInt(stockInput, 10) || 0);
 
       const product = {
         nombre: sanitize(input.name) || '',
@@ -95,6 +100,7 @@ export default async function handler(req, res) {
         'descripcion completa': sanitize(input.description) || '',
         ingredientes: sanitize(input.ingredients) || '',
         'modo de uso': sanitize(input.howToUse) || '',
+        stock: stockValue,
         popular: Boolean(input.popular) || false,
         offer: Boolean(input.offer) || false
       };
@@ -107,7 +113,7 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
-      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false };
+      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], stock: data.stock ?? null, popular: data.popular ?? false, offer: data.offer ?? false };
       return res.status(201).json({ success: true, product: forFrontend });
 
     } else if (req.method === 'PUT') {
@@ -123,6 +129,10 @@ export default async function handler(req, res) {
       if (updateData.description !== undefined) cleanUpdate['descripcion completa'] = sanitize(updateData.description);
       if (updateData.ingredients !== undefined) cleanUpdate.ingredientes = sanitize(updateData.ingredients);
       if (updateData.howToUse !== undefined) cleanUpdate['modo de uso'] = sanitize(updateData.howToUse);
+      if (updateData.stock !== undefined) {
+        const s = updateData.stock;
+        cleanUpdate.stock = (s === null || s === '') ? null : Math.max(0, parseInt(s, 10) || 0);
+      }
       if (updateData.popular !== undefined) cleanUpdate.popular = Boolean(updateData.popular);
       if (updateData.offer !== undefined) cleanUpdate.offer = Boolean(updateData.offer);
 
@@ -135,7 +145,7 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
-      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], popular: data.popular ?? false, offer: data.offer ?? false };
+      const forFrontend = { ...data, name: data.nombre, price: data.precio, description: data['descripcion completa'], shortDescription: data['descripcion corta'], image_url: data.imagen_url, category: data.categoria, size: data.tamaño, ingredients: data.ingredientes, howToUse: data['modo de uso'], stock: data.stock ?? null, popular: data.popular ?? false, offer: data.offer ?? false };
       return res.status(200).json({ success: true, product: forFrontend });
 
     } else if (req.method === 'DELETE') {
